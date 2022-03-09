@@ -1,0 +1,6 @@
+.idea/*
+/server/s3.env
+*.pem
+.vscode/
+/server/passwords.env
+/grafana

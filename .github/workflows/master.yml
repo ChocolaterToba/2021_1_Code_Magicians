@@ -1,0 +1,86 @@
+name: Pinterbest
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  linters:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Set up GolangCI-Lint and run linters
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: latest
+          working-directory: ./server
+          args: -D errcheck -D gosimple
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [linters]
+
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          cd ./server
+          go build -o . ./cmd/user/ ./cmd/pins/ ./cmd/comments/ ./cmd/chat/ ./cmd/auth/
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: |
+          cd ./server
+          ./run-tests.sh
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [tests]
+
+    steps:
+      - name: Connection to machine and deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SECRET_HOST }}
+          username: ${{ secrets.SECRET_USERNAME }}
+          password: ${{ secrets.PINTERBEST_PASSWORD }}
+          script: |
+            cd /home/Backend
+            sudo docker-compose -f docker-compose-no-monitoring.yaml down
+
+            git checkout master
+            git pull -f
+
+            pwd
+            sudo docker-compose -f docker-compose-no-monitoring.yaml up --build -d
