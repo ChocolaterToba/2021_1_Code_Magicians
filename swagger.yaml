@@ -1,0 +1,518 @@
+openapi: 3.0.0
+info:
+  description: |
+    Pinterest CM sv-cl API
+  version: 1.2.1
+  title: Gears Of Peace
+  license:
+    name: Gears Of Peace
+    url: https://github.com/tut_budet_ssilka_na_front
+servers:
+  - url: https:/zaregayu_pozdnee
+    description: Main production server
+tags:
+  - name: auth
+    description: Authorization operations
+  - name: product
+    description: Everything about products
+  - name: shop
+    description: Everything about shops
+  - name: profile
+    description: Operations about profile
+paths:
+  /auth/signup:
+    post:
+      operationId: signupUser
+      tags:
+        - auth
+      summary: Create profile
+      description: This can only be done by the unlogged user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              description: New profile object
+        required: true
+      responses:
+        '201':
+          description: Successfully created profile
+        '400':
+          description: Invalid credentials supplied
+        '403':
+          description: You are already authorized. Log out first
+        '409':
+          description: User already exists
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Logs user into the system
+      operationId: loginUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+        required: true
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid username or password supplied
+        '401':
+          description: Wrong password
+        '403':
+          description: You are already authorized. Log out first
+        '404':
+          description: User not found
+  /auth/logout:
+    post:
+      operationId: logoutUser
+      tags:
+        - auth
+      summary: Log out from current session
+      responses:
+        '204':
+          description: Logged out
+        '401':
+          description: User unauthorized
+  /auth/check:
+    get:
+      operationId: checkUserAuth
+      tags:
+        - auth
+      summary: Checks if current user is logged in
+      responses:
+        '204':
+          description: User is authorized
+        '401':
+          description: User is unauthorized
+  /profile:
+    get:
+      operationId: getSelfProfile
+      tags:
+        - profile
+      summary: Get profile of the current user
+      responses:
+        '200':
+          description: Profile found
+          content:
+            application/json:
+              schema:
+                properties:
+                  ID:
+                    type: integer
+                  username:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  email:
+                    type: string
+                  phone:
+                    type: string
+                  avatarLink:
+                    type: string
+        '401':
+          description: User unauthorized
+  /profile/{ID_or_username}:
+    get:
+      operationId: getProfileByUsernameOrID
+      tags:
+        - profile
+      summary: Get profile by username OR ID
+      parameters:
+        - name: ID_or_username
+          in: path
+          schema:
+            type: string
+          description: That could be username !OR! userID
+          required: true
+      responses:
+        '200':
+          description: Profile found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          description: Invalid ID or username supplied
+        '404':
+          description: Profile not found
+  /profile/password:
+    put:
+      operationId: changeUserPassword
+      tags:
+        - profile
+      summary: Update user password
+      description: This can only be done by authorized user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  format: password
+        description: New password
+        required: true
+      responses:
+        '204':
+          description: Successfully updated password
+        '400':
+          description: Invalid password data supplied
+        '401':
+          description: User unauthorized
+  /profile/edit:
+    put:
+      operationId: editProfile
+      tags:
+        - profile
+      summary: Update profile
+      description: This can only be done by authorized user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                username:
+                  type: string
+                phone:
+                  type: string
+                email:
+                  type: string
+                  format: email
+        description: Updated user profile
+        required: true
+      responses:
+        '204':
+          description: Successfully updated profile
+        '400':
+          description: Invalid data supplied
+        '401':
+          description: User unauthorized
+        '404':
+          description: Profile not found
+  /profile/avatar:
+    put:
+      operationId: updateProfileAvatar
+      tags:
+        - profile
+      summary: Post user avatar
+      description: This can only bo done by authorized user
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatarImage:
+                  type: string
+                  format: binary
+        description: >-
+          Avatar binary image. Can be png, jpeg or gif
+        required: true
+      responses:
+        '204':
+          description: Successfully added avatar
+        '400':
+          description: Invalid image supplied
+        '401':
+          description: User unauthorized
+  /profile/delete:
+    delete:
+      operationId: deleteSelfProfile
+      tags:
+        - profile
+      summary: Delete profile
+      description: This can only be done by authorized user
+      responses:
+        '204':
+          description: Succesful operation
+        '401':
+          description: User unauthorized
+  /product:
+    post:
+      operationId: createPin
+      tags:
+        - product
+      summary: Create new product
+      description: This can only be done by authorized user
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                productInfo:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    description:
+                      type: string
+                    price:
+                      type: integer
+                    shopID:
+                      type: integer
+                productImages:
+                  type: string
+                  format: binary
+        description: New product
+        required: true
+      responses:
+        '201':
+          description: Successfully created product
+          content:
+            application/json:
+              schema:
+                properties:
+                  ID:
+                    type: integer
+        '400':
+          description: Failed to create product due to invalid data
+        '403':
+          description: Can't create product while not logged in as manager
+        '404':
+          description: Shop not found
+  /product/{productID}:
+    get:
+      operationId: getProductByID
+      tags:
+        - product
+      summary: Get product by ID
+      parameters:
+        - name: productID
+          in: path
+          schema:
+            type: integer
+            format: int
+          description: The ID that needs to be fetched
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid product ID supplied
+        '404':
+          description: Product not found
+    delete:
+      operationId: deleteProductByID
+      tags:
+        - product
+      summary: Delete product by ID
+      description: This can only be done by manager
+      parameters:
+        - name: productID
+          in: path
+          schema:
+            type: integer
+            format: int
+          description: The ID of product that needs to be deleted
+          required: true
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid product ID supplied
+        '401':
+          description: User unauthorized as manager
+        '404':
+          description: Product not found
+  /products/{shopID}:
+    get:
+      operationId: getProductsByShopID
+      tags:
+        - product
+      summary: Get products by their shopID
+      parameters:
+        - name: shopID
+          in: path
+          schema:
+            type: integer
+            format: int
+          description: The ID of target shop
+          required: true
+        - name: productAmount
+          in: query
+          schema:
+            type: integer
+            format: int
+          description: amount of products to fetch. If not supplied, try to fetch all
+          required: false
+        - name: productPage
+          in: query
+          schema:
+            type: integer
+            format: int
+          description: Page (size=productAmount) from which to start fetching products
+          required: false
+        - name: sortingCrit
+          in: query
+          schema:
+            type: string
+          description: >-
+            The identifier of criterion to provide next productAmount products.
+            If not supplied sort by id desc
+          required: false
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pins:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+        '400':
+          description: Invalid shop ID supplied
+        '404':
+          description: Shop not found
+  /products/feed/:
+    get:
+      operationId: getProductsFeed
+      tags:
+        - product
+      summary: Get products feed
+      parameters:
+        - name: productAmount
+          in: query
+          schema:
+            type: integer
+            format: int
+          description: amount of products to fetch. If not supplied, try to fetch all
+          required: false
+        - name: productPage
+          in: query
+          schema:
+            type: integer
+            format: int
+          description: Page (size=productAmount) from which to start fetching products
+          required: false
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pins:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+  /csrf:
+    get:
+      operationId: getCSRFToken
+      tags:
+        - CSRF
+      summary: Get CSRF
+      responses:
+        '204':
+          description: Done
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        ID:
+          type: integer
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        avatarLink:
+          type: string
+    Shop:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int
+        managerID:
+          type: integer
+          format: int
+        name:
+          type: string
+        description:
+          type: string
+        avatarLink:
+          type: string
+      required:
+        - ID
+        - title
+    Pin:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int
+        boardID:
+          type: integer
+          format: int
+        userID:
+          type: integer
+          format: int
+        title:
+          type: string
+        description:
+          type: string
+        imageLink:
+          type: string
+        relatedTagIDs:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - title
+        - boardID
+        - imageLink
+    Comment:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int
+        userID:
+          type: integer
+          format: int
+        pinID:
+          type: integer
+          format: int
+        addingTime:
+          type: string
+          format: date-time
+        text:
+          type: string
