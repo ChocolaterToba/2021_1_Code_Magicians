@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+// PATH="${PATH}:${HOME}/go/bin" protoc --go_out=plugins=grpc:. *.proto
+
+option go_package = "./";
+import "google/protobuf/timestamp.proto";
+
+
+package shopProduct;
+
+message Shop {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  repeated uint64 manager_ids = 4;
+}
+
+message CreateShopRequest {
+  string title = 1;
+  string description = 2;
+  repeated uint64 manager_ids = 3;
+}
+
+message EditShopRequest {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  repeated uint64 manager_ids = 4;
+}
+
+message GetShopRequest {
+  uint64 id = 1;
+}
+
+message Product {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  uint64 price = 4;
+  bool availability = 5;
+  uint64 assembly_time = 6;
+  uint64 parts_amount = 7;
+  float rating = 8;
+  string size = 9;
+  string category = 10;
+  repeated string image_links = 11;
+  uint64 shop_id = 12;
+}
+
+message CreateProductRequest {
+  string title = 1;
+  string description = 2;
+  uint64 price = 3;
+  bool availability = 4;
+  uint64 assembly_time = 5;
+  uint64 parts_amount = 6;
+  float rating = 7;
+  string size = 8;
+  string category = 9;
+  uint64 shop_id = 10;
+}
+
+message EditProductRequest {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  uint64 price = 4;
+  bool availability = 5;
+  uint64 assembly_time = 6;
+  uint64 parts_amount = 7;
+  float rating = 8;
+  string size = 9;
+  string category = 10;
+  uint64 shop_id = 11;
+}
+
+message GetProductRequest {
+  uint64 id = 1;
+}
+
+message StatusResponse {
+  uint64 code = 1;
+  string status = 2;
+}
+
+service ShopProduct {
+  rpc   CreateShop(CreateShopRequest) returns (StatusResponse) {}
+  rpc   EditShop(EditShopRequest) returns (StatusResponse) {}
+  rpc   GetShop(GetShopRequest) returns (Shop) {}
+  rpc   CreateProduct(CreateProductRequest) returns (StatusResponse) {}
+  rpc   EditProduct(EditProductRequest) returns (StatusResponse) {}
+  rpc   GetProduct(GetProductRequest) returns (Product) {}
+}
