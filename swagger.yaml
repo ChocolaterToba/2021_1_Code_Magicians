@@ -10,6 +10,7 @@ info:
 servers:
   - url: https:/zaregayu_pozdnee
     description: Main production server
+
 tags:
   - name: auth
     description: Authorization operations
@@ -19,6 +20,7 @@ tags:
     description: Everything about shops
   - name: profile
     description: Operations about profile
+
 paths:
   /auth/signup:
     post:
@@ -255,7 +257,7 @@ paths:
           description: User unauthorized
   /product:
     post:
-      operationId: createPin
+      operationId: createProduct
       tags:
         - product
       summary: Create new product
@@ -434,11 +436,103 @@ paths:
     get:
       operationId: getCSRFToken
       tags:
-        - CSRF
+        - auth
       summary: Get CSRF
       responses:
         '204':
           description: Done
+  /shop:
+    post:
+      operationId: createShop
+      tags:
+        - shop
+      summary: Create new shop
+      description: This can only be done by authorized user
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                shopInfo:
+                  type: object
+                  properties:
+                    managerIDs:
+                      type: array
+                      items:
+                        type: integer
+                        format: int
+                    name:
+                      type: string
+                    description:
+                      type: string
+                shopImage:
+                  type: string
+                  format: binary
+        description: New product
+        required: true
+      responses:
+        '201':
+          description: Successfully created shop
+          content:
+            application/json:
+              schema:
+                properties:
+                  ID:
+                    type: integer
+        '400':
+          description: Failed to create shop due to invalid data
+        '403':
+          description: Can't create shop while not logged in as manager
+  /shop/{shopID}:
+    get:
+      operationId: getShopByID
+      tags:
+        - shop
+      summary: Get shop by ID
+      parameters:
+        - name: shopID
+          in: path
+          schema:
+            type: integer
+            format: int
+          description: The ID that needs to be fetched
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shop'
+        '400':
+          description: Invalid shop ID supplied
+        '404':
+          description: Shop not found
+    delete:
+      operationId: deleteShopByID
+      tags:
+        - shop
+      summary: Delete shop by ID
+      description: This can only be done by manager
+      parameters:
+        - name: shopID
+          in: path
+          schema:
+            type: integer
+            format: int
+          description: The ID of shop that needs to be deleted
+          required: true
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid shop ID supplied
+        '401':
+          description: User unauthorized as manager
+        '404':
+          description: Shop not found
+
 components:
   schemas:
     Profile:
@@ -460,9 +554,11 @@ components:
         ID:
           type: integer
           format: int
-        managerID:
-          type: integer
-          format: int
+        managerIDs:
+          type: array
+          items:
+            type: integer
+            format: int
         name:
           type: string
         description:
@@ -472,47 +568,28 @@ components:
       required:
         - ID
         - title
-    Pin:
+    Product:
       type: object
       properties:
         ID:
           type: integer
           format: int
-        boardID:
-          type: integer
-          format: int
-        userID:
+        shopID:
           type: integer
           format: int
         title:
           type: string
         description:
           type: string
-        imageLink:
-          type: string
-        relatedTagIDs:
+        price:
+          type: integer
+        imageLinks:
           type: array
           items:
             type: string
+          
       required:
         - id
         - title
         - boardID
         - imageLink
-    Comment:
-      type: object
-      properties:
-        ID:
-          type: integer
-          format: int
-        userID:
-          type: integer
-          format: int
-        pinID:
-          type: integer
-          format: int
-        addingTime:
-          type: string
-          format: date-time
-        text:
-          type: string
