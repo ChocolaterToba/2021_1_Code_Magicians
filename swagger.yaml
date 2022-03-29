@@ -105,6 +105,16 @@ paths:
           description: User is authorized
         '401':
           description: User is unauthorized
+  /csrf:
+    get:
+      operationId: getCSRFToken
+      tags:
+        - auth
+      summary: Get CSRF token
+      responses:
+        '204':
+          description: Done
+
   /profile:
     get:
       operationId: getSelfProfile
@@ -255,6 +265,7 @@ paths:
           description: Succesful operation
         '401':
           description: User unauthorized
+
   /product:
     post:
       operationId: createProduct
@@ -432,15 +443,90 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Product'
-  /csrf:
-    get:
-      operationId: getCSRFToken
+  /product/review/:
+    post:
+      operationId: createProductReview
       tags:
-        - auth
-      summary: Get CSRF
+        - product
+      summary: Create new product review
+      description: This can only be done by authorized user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productID:
+                  type: integer
+                  format: int
+                userID:
+                  type: integer
+                  format: int
+                text:
+                  type: string
+                rating:
+                  type: integer
+                  format: int
+              description: New review object
+        required: true
+        description: New product review
       responses:
-        '204':
-          description: Done
+        '201':
+          description: Successfully created product review
+          content:
+            application/json:
+              schema:
+                properties:
+                  ID:
+                    type: integer
+        '400':
+          description: Failed to create product review due to invalid data
+        '403':
+          description: Can't create review if not logged in as customer
+        '404':
+          description: Product or user not found
+  /product/{productID}/reviews/:
+    get:
+      operationId: getProductReviews
+      tags:
+        - product
+      summary: Get reviews of specific product
+      description: This can only be done by authorized user
+      parameters:
+        - name: productID
+          in: path
+          schema:
+            type: integer
+            format: int
+          description: ID of related product
+          required: true
+        - name: reviewsAmount
+          in: query
+          schema:
+            type: integer
+            format: int
+          description: amount of reviews to fetch. If not supplied, try to fetch all
+          required: false
+        - name: reviewsPage
+          in: query
+          schema:
+            type: integer
+            format: int
+          description: Page (size=reviewsAmount) from which to start fetching reviews
+          required: false
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pins:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductReview'
+
   /shop:
     post:
       operationId: createShop
@@ -587,6 +673,27 @@ components:
           type: array
           items:
             type: string
+    ProductReview:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int
+        productID:
+          type: integer
+          format: int
+        userID:
+          type: integer
+          format: int
+        username:
+          type: string
+        title:
+          type: string
+        text:
+          type: string
+        rating:
+          type: integer
+          format: int
           
       required:
         - id
