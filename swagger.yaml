@@ -402,7 +402,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  pins:
+                  products:
                     type: array
                     items:
                       $ref: '#/components/schemas/Product'
@@ -522,7 +522,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  pins:
+                  reviews:
                     type: array
                     items:
                       $ref: '#/components/schemas/ProductReview'
