@@ -39,15 +39,15 @@ func (app *AuthApp) AddCookieInfo(ctx context.Context, cookieInfo domain.CookieI
 }
 
 func (app *AuthApp) SearchCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error) {
-	return app.repo.SearchCookieByValue(ctx, cookieValue)
+	return app.repo.GetCookieByValue(ctx, cookieValue)
 }
 
 func (app *AuthApp) SearchCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error) {
-	return app.repo.SearchCookieByUserID(ctx, userID)
+	return app.repo.GetCookieByUserID(ctx, userID)
 }
 
 func (app *AuthApp) RemoveCookie(ctx context.Context, cookieInfo domain.CookieInfo) error {
-	return app.repo.RemoveCookie(ctx, cookieInfo)
+	return app.repo.DeleteCookie(ctx, cookieInfo.UserID)
 }
 
 func (app *AuthApp) GetUserIDByVkID(ctx context.Context, vkID uint64) (userID uint64, err error) {
