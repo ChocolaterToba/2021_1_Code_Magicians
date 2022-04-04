@@ -13,12 +13,12 @@ func ToShop(pbShop *pb.Shop) Shop {
 	}
 }
 
-func ToPbShop(Shop Shop) *pb.Shop {
+func ToPbShop(shop Shop) *pb.Shop {
 	return &pb.Shop{
-		Id:          Shop.Id,
-		Title:       Shop.Title,
-		Description: Shop.Description,
-		ManagerIds:  Shop.ManagerIDs,
+		Id:          shop.Id,
+		Title:       shop.Title,
+		Description: shop.Description,
+		ManagerIds:  shop.ManagerIDs,
 	}
 }
 
