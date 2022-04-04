@@ -32,10 +32,10 @@ func runServer(addr string) {
 		sugarLogger.Fatal("Could not load passwords.env file", zap.String("error", err.Error()))
 	}
 
-	err = godotenv.Load("s3.env")
-	if err != nil {
-		sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
-	}
+	// err = godotenv.Load("s3.env")
+	// if err != nil {
+	// 	sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
+	// }
 
 	err = godotenv.Load("docker_vars.env")
 	if err != nil {

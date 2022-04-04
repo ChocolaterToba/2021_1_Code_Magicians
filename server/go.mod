@@ -3,7 +3,6 @@ module pinterest
 go 1.16
 
 require (
-	github.com/aws/aws-sdk-go v1.40.47
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/csrf v1.7.1
 	github.com/gorilla/mux v1.8.0

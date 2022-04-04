@@ -11,8 +11,9 @@ services:
   
   auth-service:
     build: server
-    ports:
-      - 8081:8081
+    # ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8081:8081
     command: ["go", "run", "./cmd/auth/"]
 
 volumes:

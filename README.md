@@ -18,7 +18,7 @@ Instructions with docker:
 - If HTTPS support is needed, edit .env variable HTTPS_ON to true and copy your certificate as cert.pem, key as key.pem, adding them to server directory
 - If CSRF support is needed, edit .env variable CSRF_ON to true
 
-- add/edit server/s3.env file, adding your AWS access key id and secret acces key.
+- add/edit server/s3.env file, adding your AWS access key id and secret access key.
 
 To get AWS access key id and AWS secret access key, visit https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/setting-up.html#w2aab7b9b3b5
 
@@ -43,7 +43,7 @@ Instructions without docker:
 
 - $cd server
 - $go mod download
-- Edit s3.env file, adding AWS access key id and secret acces key.
+- Edit s3.env file, adding AWS access key id and secret access key.
 
 To get AWS access key id and AWS secret access key, visit https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/setting-up.html#w2aab7b9b3b5
 

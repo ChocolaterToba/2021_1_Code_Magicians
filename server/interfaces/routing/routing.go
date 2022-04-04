@@ -23,7 +23,7 @@ func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfac
 		csrfMid := csrf.Protect(
 			[]byte(os.Getenv("CSRF_KEY")),
 			csrf.Path("/"),
-			csrf.Secure(httpOn), // REMOVE IN PROD!!!!
+			csrf.Secure(true),
 		)
 		r.Use(csrfMid)
 		r.Use(mid.CSRFSettingMid)

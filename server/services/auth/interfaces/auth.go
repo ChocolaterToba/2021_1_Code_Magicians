@@ -11,6 +11,7 @@ import (
 )
 
 type AuthFacade struct {
+	pb.UnimplementedAuthServer
 	app application.AuthAppInterface
 }
 
