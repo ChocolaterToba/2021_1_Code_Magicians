@@ -15,7 +15,7 @@ type AuthRepoInterface interface {
 	AddCookieInfo(ctx context.Context, cookieInfo domain.CookieInfo) error
 	GetCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error)
 	GetCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error)
-	DeleteCookie(ctx context.Context, userID uint64) error
+	DeleteCookie(ctx context.Context, cookieValue string) error
 	GetUserIDByVkID(ctx context.Context, vkID uint64) (userID uint64, err error)
 	AddVkID(ctx context.Context, userID uint64, vkID uint64) error
 }
@@ -154,7 +154,7 @@ func (repo *AuthRepo) GetCookieByUserID(ctx context.Context, userID uint64) (coo
 	return cookie, nil
 }
 
-func (repo *AuthRepo) DeleteCookie(ctx context.Context, userID uint64) error {
+func (repo *AuthRepo) DeleteCookie(ctx context.Context, cookieValue string) error {
 	tx, err := repo.postgresDB.Begin(context.Background())
 	if err != nil {
 		return domain.TransactionBeginError
@@ -163,7 +163,7 @@ func (repo *AuthRepo) DeleteCookie(ctx context.Context, userID uint64) error {
 
 	deleteCookieQuery := `UPDATE user
 						  SET cookie_value = '', cookie_expiry = now()
-						  WHERE user_id = $1`
+						  WHERE user.cookie_value = $1`
 
 	result, err := tx.Exec(context.Background(), deleteCookieQuery, userID)
 	if err != nil {

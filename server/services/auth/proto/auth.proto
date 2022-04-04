@@ -43,11 +43,8 @@ message CookieInfo {
 message Error {}
 
 service Auth {
-  rpc   CheckUserCredentials(UserAuth) returns (Error) {}
-  rpc   AddCookieInfo(CookieInfo) returns (Error) {}
+  rpc   LoginUser(UserAuth) returns (CookieInfo) {}
   rpc   SearchCookieByValue(CookieValue) returns (CookieInfo) {}
   rpc   SearchCookieByUserID(UserID) returns (CookieInfo) {}
-  rpc   RemoveCookie(CookieInfo) returns (Error) {}
-  rpc   GetUserIDByVkID(VkIDInfo) returns (UserID) {}
-  rpc   AddVkID(VkAndUserIDInfo) returns (Error) {}
+  rpc   LogoutUser(CookieValue) returns (Error) {}
 }

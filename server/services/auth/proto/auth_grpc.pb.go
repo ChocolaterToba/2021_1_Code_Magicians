@@ -18,13 +18,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthClient interface {
-	CheckUserCredentials(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*Error, error)
-	AddCookieInfo(ctx context.Context, in *CookieInfo, opts ...grpc.CallOption) (*Error, error)
+	LoginUser(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*CookieInfo, error)
 	SearchCookieByValue(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*CookieInfo, error)
 	SearchCookieByUserID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*CookieInfo, error)
-	RemoveCookie(ctx context.Context, in *CookieInfo, opts ...grpc.CallOption) (*Error, error)
-	GetUserIDByVkID(ctx context.Context, in *VkIDInfo, opts ...grpc.CallOption) (*UserID, error)
-	AddVkID(ctx context.Context, in *VkAndUserIDInfo, opts ...grpc.CallOption) (*Error, error)
+	LogoutUser(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*Error, error)
 }
 
 type authClient struct {
@@ -35,18 +32,9 @@ func NewAuthClient(cc grpc.ClientConnInterface) AuthClient {
 	return &authClient{cc}
 }
 
-func (c *authClient) CheckUserCredentials(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*Error, error) {
-	out := new(Error)
-	err := c.cc.Invoke(ctx, "/auth.Auth/CheckUserCredentials", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authClient) AddCookieInfo(ctx context.Context, in *CookieInfo, opts ...grpc.CallOption) (*Error, error) {
-	out := new(Error)
-	err := c.cc.Invoke(ctx, "/auth.Auth/AddCookieInfo", in, out, opts...)
+func (c *authClient) LoginUser(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*CookieInfo, error) {
+	out := new(CookieInfo)
+	err := c.cc.Invoke(ctx, "/auth.Auth/LoginUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -71,27 +59,9 @@ func (c *authClient) SearchCookieByUserID(ctx context.Context, in *UserID, opts 
 	return out, nil
 }
 
-func (c *authClient) RemoveCookie(ctx context.Context, in *CookieInfo, opts ...grpc.CallOption) (*Error, error) {
+func (c *authClient) LogoutUser(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*Error, error) {
 	out := new(Error)
-	err := c.cc.Invoke(ctx, "/auth.Auth/RemoveCookie", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authClient) GetUserIDByVkID(ctx context.Context, in *VkIDInfo, opts ...grpc.CallOption) (*UserID, error) {
-	out := new(UserID)
-	err := c.cc.Invoke(ctx, "/auth.Auth/GetUserIDByVkID", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authClient) AddVkID(ctx context.Context, in *VkAndUserIDInfo, opts ...grpc.CallOption) (*Error, error) {
-	out := new(Error)
-	err := c.cc.Invoke(ctx, "/auth.Auth/AddVkID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/auth.Auth/LogoutUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -102,13 +72,10 @@ func (c *authClient) AddVkID(ctx context.Context, in *VkAndUserIDInfo, opts ...g
 // All implementations must embed UnimplementedAuthServer
 // for forward compatibility
 type AuthServer interface {
-	CheckUserCredentials(context.Context, *UserAuth) (*Error, error)
-	AddCookieInfo(context.Context, *CookieInfo) (*Error, error)
+	LoginUser(context.Context, *UserAuth) (*CookieInfo, error)
 	SearchCookieByValue(context.Context, *CookieValue) (*CookieInfo, error)
 	SearchCookieByUserID(context.Context, *UserID) (*CookieInfo, error)
-	RemoveCookie(context.Context, *CookieInfo) (*Error, error)
-	GetUserIDByVkID(context.Context, *VkIDInfo) (*UserID, error)
-	AddVkID(context.Context, *VkAndUserIDInfo) (*Error, error)
+	LogoutUser(context.Context, *CookieValue) (*Error, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -116,11 +83,8 @@ type AuthServer interface {
 type UnimplementedAuthServer struct {
 }
 
-func (UnimplementedAuthServer) CheckUserCredentials(context.Context, *UserAuth) (*Error, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckUserCredentials not implemented")
-}
-func (UnimplementedAuthServer) AddCookieInfo(context.Context, *CookieInfo) (*Error, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddCookieInfo not implemented")
+func (UnimplementedAuthServer) LoginUser(context.Context, *UserAuth) (*CookieInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginUser not implemented")
 }
 func (UnimplementedAuthServer) SearchCookieByValue(context.Context, *CookieValue) (*CookieInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchCookieByValue not implemented")
@@ -128,14 +92,8 @@ func (UnimplementedAuthServer) SearchCookieByValue(context.Context, *CookieValue
 func (UnimplementedAuthServer) SearchCookieByUserID(context.Context, *UserID) (*CookieInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchCookieByUserID not implemented")
 }
-func (UnimplementedAuthServer) RemoveCookie(context.Context, *CookieInfo) (*Error, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveCookie not implemented")
-}
-func (UnimplementedAuthServer) GetUserIDByVkID(context.Context, *VkIDInfo) (*UserID, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserIDByVkID not implemented")
-}
-func (UnimplementedAuthServer) AddVkID(context.Context, *VkAndUserIDInfo) (*Error, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AddVkID not implemented")
+func (UnimplementedAuthServer) LogoutUser(context.Context, *CookieValue) (*Error, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LogoutUser not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 
@@ -150,38 +108,20 @@ func RegisterAuthServer(s grpc.ServiceRegistrar, srv AuthServer) {
 	s.RegisterService(&Auth_ServiceDesc, srv)
 }
 
-func _Auth_CheckUserCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Auth_LoginUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserAuth)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).CheckUserCredentials(ctx, in)
+		return srv.(AuthServer).LoginUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.Auth/CheckUserCredentials",
+		FullMethod: "/auth.Auth/LoginUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).CheckUserCredentials(ctx, req.(*UserAuth))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Auth_AddCookieInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CookieInfo)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServer).AddCookieInfo(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/auth.Auth/AddCookieInfo",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).AddCookieInfo(ctx, req.(*CookieInfo))
+		return srv.(AuthServer).LoginUser(ctx, req.(*UserAuth))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -222,56 +162,20 @@ func _Auth_SearchCookieByUserID_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Auth_RemoveCookie_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CookieInfo)
+func _Auth_LogoutUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CookieValue)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AuthServer).RemoveCookie(ctx, in)
+		return srv.(AuthServer).LogoutUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.Auth/RemoveCookie",
+		FullMethod: "/auth.Auth/LogoutUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).RemoveCookie(ctx, req.(*CookieInfo))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Auth_GetUserIDByVkID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VkIDInfo)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServer).GetUserIDByVkID(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/auth.Auth/GetUserIDByVkID",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).GetUserIDByVkID(ctx, req.(*VkIDInfo))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Auth_AddVkID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VkAndUserIDInfo)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServer).AddVkID(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/auth.Auth/AddVkID",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).AddVkID(ctx, req.(*VkAndUserIDInfo))
+		return srv.(AuthServer).LogoutUser(ctx, req.(*CookieValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -284,12 +188,8 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*AuthServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CheckUserCredentials",
-			Handler:    _Auth_CheckUserCredentials_Handler,
-		},
-		{
-			MethodName: "AddCookieInfo",
-			Handler:    _Auth_AddCookieInfo_Handler,
+			MethodName: "LoginUser",
+			Handler:    _Auth_LoginUser_Handler,
 		},
 		{
 			MethodName: "SearchCookieByValue",
@@ -300,16 +200,8 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Auth_SearchCookieByUserID_Handler,
 		},
 		{
-			MethodName: "RemoveCookie",
-			Handler:    _Auth_RemoveCookie_Handler,
-		},
-		{
-			MethodName: "GetUserIDByVkID",
-			Handler:    _Auth_GetUserIDByVkID_Handler,
-		},
-		{
-			MethodName: "AddVkID",
-			Handler:    _Auth_AddVkID_Handler,
+			MethodName: "LogoutUser",
+			Handler:    _Auth_LogoutUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
