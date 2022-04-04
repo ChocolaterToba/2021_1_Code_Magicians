@@ -19,7 +19,7 @@ type AuthApp struct {
 	repo repository.AuthRepoInterface
 }
 
-func NewService(repo repository.AuthRepoInterface) *AuthApp {
+func NewAuthApp(repo repository.AuthRepoInterface) *AuthApp {
 	return &AuthApp{
 		repo: repo,
 	}

@@ -6,12 +6,13 @@ import (
 	"log"
 	"net"
 	"os"
-	authService "pinterest/services/auth"
-	authProto "pinterest/services/auth/proto"
+	authapp "pinterest/services/auth/application"
+	authrepo "pinterest/services/auth/infrastructure"
+	authfacade "pinterest/services/auth/interfaces"
+	authproto "pinterest/services/auth/proto"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/tarantool/go-tarantool"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -64,21 +65,10 @@ func runService(addr string) {
 		sugarLogger.Fatalf("Wrong prefix: %s , should be DOCKER or LOCALHOST", dockerStatus)
 	}
 
-	tarantoolConn, err := tarantool.Connect(os.Getenv(dockerStatus+"_TARANTOOL_PREFIX")+":3301", tarantool.Opts{
-		User: os.Getenv("TARANTOOL_USER"),
-		Pass: os.Getenv("TARANTOOL_PASSWORD"),
-	})
-	if err != nil {
-		sugarLogger.Fatal("Could not connect to tarantool database", zap.String("error", err.Error()))
-	}
-
-	fmt.Println("Successfully connected to tarantool database")
-	defer tarantoolConn.Close()
-
 	server := grpc.NewServer()
 
-	service := authService.NewService(postgresConn, tarantoolConn)
-	authProto.RegisterAuthServer(server, service)
+	service := authfacade.NewAuthFacade(authapp.NewAuthApp(authrepo.NewAuthRepo(postgresConn)))
+	authproto.RegisterAuthServer(server, service)
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {

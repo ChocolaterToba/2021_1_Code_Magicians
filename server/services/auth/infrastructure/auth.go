@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"pinterest/domain/entity"
 	"pinterest/services/auth/domain"
 
 	"github.com/jackc/pgx/v4"
@@ -16,8 +15,6 @@ type AuthRepoInterface interface {
 	GetCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error)
 	GetCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error)
 	DeleteCookie(ctx context.Context, cookieValue string) error
-	GetUserIDByVkID(ctx context.Context, vkID uint64) (userID uint64, err error)
-	AddVkID(ctx context.Context, userID uint64, vkID uint64) error
 }
 
 type AuthRepo struct {
@@ -62,7 +59,7 @@ func (repo *AuthRepo) CheckUserCredentials(ctx context.Context, username string,
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return 0, entity.TransactionCommitError
+		return 0, domain.TransactionCommitError
 	}
 	return userID, nil
 }
@@ -89,7 +86,7 @@ func (repo *AuthRepo) AddCookieInfo(ctx context.Context, cookieInfo domain.Cooki
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return entity.TransactionCommitError
+		return domain.TransactionCommitError
 	}
 	return nil
 }
@@ -119,7 +116,7 @@ func (repo *AuthRepo) GetCookieByValue(ctx context.Context, cookieValue string) 
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return domain.CookieInfo{}, entity.TransactionCommitError
+		return domain.CookieInfo{}, domain.TransactionCommitError
 	}
 	return cookie, nil
 }
@@ -149,7 +146,7 @@ func (repo *AuthRepo) GetCookieByUserID(ctx context.Context, userID uint64) (coo
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return domain.CookieInfo{}, entity.TransactionCommitError
+		return domain.CookieInfo{}, domain.TransactionCommitError
 	}
 	return cookie, nil
 }
@@ -165,7 +162,7 @@ func (repo *AuthRepo) DeleteCookie(ctx context.Context, cookieValue string) erro
 						  SET cookie_value = '', cookie_expiry = now()
 						  WHERE user.cookie_value = $1`
 
-	result, err := tx.Exec(context.Background(), deleteCookieQuery, userID)
+	result, err := tx.Exec(context.Background(), deleteCookieQuery, cookieValue)
 	if err != nil {
 		return err
 	}
@@ -176,7 +173,7 @@ func (repo *AuthRepo) DeleteCookie(ctx context.Context, cookieValue string) erro
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return entity.TransactionCommitError
+		return domain.TransactionCommitError
 	}
 	return nil
 }

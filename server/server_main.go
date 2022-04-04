@@ -2,35 +2,18 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"pinterest/application"
-	"pinterest/domain/entity"
-	"pinterest/infrastructure/persistance"
-	"pinterest/interfaces/auth"
-	"pinterest/interfaces/board"
-	"pinterest/interfaces/chat"
-	"pinterest/interfaces/comment"
-	"pinterest/interfaces/follow"
-	"pinterest/interfaces/notification"
-	"pinterest/interfaces/pin"
-	"pinterest/interfaces/profile"
+	authclient "pinterest/clients/auth"
+	authfacade "pinterest/interfaces/auth"
 	"pinterest/interfaces/routing"
-	"pinterest/interfaces/websocket"
-	protoAuth "pinterest/services/auth/proto"
-	protoComments "pinterest/services/comments/proto"
-	protoPins "pinterest/services/pins/proto"
-	protoUser "pinterest/services/user/proto"
-	"text/template"
-	"time"
+	authproto "pinterest/services/auth/proto"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
-	"github.com/tarantool/go-tarantool"
 )
 
 func runServer(addr string) {
@@ -69,93 +52,27 @@ func runServer(addr string) {
 		sugarLogger.Fatalf("Wrong prefix: %s , should be DOCKER or LOCALHOST", dockerStatus)
 	}
 
-	tarantoolConn, err := tarantool.Connect(os.Getenv(dockerStatus+"_TARANTOOL_PREFIX")+":3301", tarantool.Opts{
-		User: os.Getenv("TARANTOOL_USER"),
-		Pass: os.Getenv("TARANTOOL_PASSWORD"),
-	})
-	if err != nil {
-		sugarLogger.Fatal("Could not connect to tarantool database", zap.String("error", err.Error()))
-	}
-
-	fmt.Println("Successfully connected to tarantool database")
-	defer tarantoolConn.Close()
-
-	sess := entity.ConnectAws()
+	// sess := entity.ConnectAws()
 	// TODO divide file
 
-	sessionUser, err := grpc.Dial(os.Getenv(dockerStatus+"_USER_PREFIX")+":8082", grpc.WithInsecure())
-	if err != nil {
-		sugarLogger.Fatal("Can not create session for User service")
-	}
-	defer sessionUser.Close()
-
-	sessionAuth, err := grpc.Dial(os.Getenv(dockerStatus+"_AUTH_PREFIX")+":8083", grpc.WithInsecure())
+	sessionAuth, err := grpc.Dial(os.Getenv(dockerStatus+"_AUTH_PREFIX")+":8081", grpc.WithInsecure())
 	if err != nil {
 		sugarLogger.Fatal("Can not create session for Auth service")
 	}
 	defer sessionAuth.Close()
 
-	sessionPins, err := grpc.Dial(os.Getenv(dockerStatus+"_PINS_PREFIX")+":8084", grpc.WithInsecure())
-	if err != nil {
-		sugarLogger.Fatal("Can not create session for Pins service")
-	}
-	defer sessionPins.Close()
+	authClient := authclient.NewAuthClient(authproto.NewAuthClient(sessionAuth))
 
-	sessionComments, err := grpc.Dial(os.Getenv(dockerStatus+"_COMMENTS_PREFIX")+":8085", grpc.WithInsecure())
-	if err != nil {
-		sugarLogger.Fatal("Can not create session for Comments service")
-	}
-	defer sessionComments.Close()
-
-	pinEmailTemplteBytes, err := ioutil.ReadFile(string(entity.EmailTemplateFilenameKey))
-	if err != nil {
-		sugarLogger.Fatal("Could not find template for pin emails")
-	}
-	pinEmailTemplateString := string(pinEmailTemplteBytes)
-	pinEmailTemplate, err := template.New("EMail Template").Parse(pinEmailTemplateString)
-	if err != nil {
-		sugarLogger.Fatal("Could not parse template for pin emails", err)
-	}
-
-	repoUser := protoUser.NewUserClient(sessionUser)
-	repoAuth := protoAuth.NewAuthClient(sessionAuth)
-	repoPins := protoPins.NewPinsClient(sessionPins)
-	repoComments := protoComments.NewCommentsClient(sessionComments)
-	repoNotification := persistance.NewNotificationRepository(tarantoolConn)
-	repoChat := persistance.NewChatRepository(tarantoolConn)
-	cookieApp := application.NewCookieApp(repoAuth, 40, 10*time.Hour)
-	boardApp := application.NewBoardApp(repoPins)
-	s3App := application.NewS3App(sess, os.Getenv("BUCKET_NAME"))
-	userApp := application.NewUserApp(repoUser, boardApp)
-	authApp := application.NewAuthApp(repoAuth, userApp, cookieApp,
-		os.Getenv("VK_CLIENT_ID"), os.Getenv("VK_CLIENT_SECRET"))
-	pinApp := application.NewPinApp(repoPins, boardApp)
-	followApp := application.NewFollowApp(repoUser, pinApp)
-	commentApp := application.NewCommentApp(repoComments)
-	websocketApp := application.NewWebsocketApp(userApp)
-	notificationApp := application.NewNotificationApp(repoNotification, userApp, websocketApp)
-	chatApp := application.NewChatApp(repoChat, userApp, websocketApp)
-
-	boardInfo := board.NewBoardInfo(boardApp, logger)
-	authInfo := auth.NewAuthInfo(userApp, authApp, cookieApp, s3App, boardApp, websocketApp, logger)
-	profileInfo := profile.NewProfileInfo(userApp, authApp, cookieApp, followApp, s3App, notificationApp, logger)
-	followInfo := follow.NewFollowInfo(userApp, followApp, notificationApp, logger)
-	pinInfo := pin.NewPinInfo(pinApp, followApp, notificationApp, userApp, boardApp, s3App, logger,
-		pinEmailTemplate, os.Getenv("EMAIL_USERNAME"), os.Getenv("EMAIL_PASSWORD"))
-	commentsInfo := comment.NewCommentInfo(commentApp, pinApp, logger)
-	websocketInfo := websocket.NewWebsocketInfo(notificationApp, chatApp, websocketApp, os.Getenv("CSRF_ON") == "true", logger)
-	notificationInfo := notification.NewNotificationInfo(notificationApp, logger)
-	chatInfo := chat.NewChatnfo(chatApp, userApp, logger)
+	authFacade := authfacade.NewAuthFacade(authClient, logger)
 	// TODO divide file
 
-	r := routing.CreateRouter(authApp, boardInfo, authInfo, profileInfo, followInfo, pinInfo, commentsInfo,
-		websocketInfo, notificationInfo, chatInfo, os.Getenv("CSRF_ON") == "true", os.Getenv("HTTPS_ON") == "true")
+	r := routing.CreateRouter(authClient, authFacade, os.Getenv("CSRF_ON") == "true", os.Getenv("HTTPS_ON") == "true")
 
 	allowedOrigins := make([]string, 0)
 	switch os.Getenv("HTTPS_ON") {
 	case "true":
 		allowedOrigins = append(allowedOrigins, "https://pinterbest.ru:8081", "https://pinterbest.ru",
-			"https://127.0.0.1:8081", "https://164.90.222.152")
+			"https://127.0.0.1:8081", "https://164.90.222.152") // TODO: replace with actual
 	case "false":
 		allowedOrigins = append(allowedOrigins, "http://pinterbest.ru:8081", "http://pinterbest.ru",
 			"http://127.0.0.1:8081", "http://164.90.222.152")

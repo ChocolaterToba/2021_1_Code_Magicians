@@ -3,11 +3,10 @@ package middleware
 import (
 	"context"
 	"net/http"
+	authclient "pinterest/clients/auth"
+	"pinterest/domain"
 
 	"go.uber.org/zap"
-
-	"pinterest/application"
-	"pinterest/domain/entity"
 
 	"github.com/gorilla/csrf"
 )
@@ -18,24 +17,24 @@ func init() {
 	logger, _ = zap.NewDevelopment()
 }
 
-func AuthMid(next http.HandlerFunc, cookieApp application.AuthAppInterface) http.HandlerFunc {
+func AuthMid(next http.HandlerFunc, authClient authclient.AuthClientInterface) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, found := CheckCookies(r, cookieApp)
+		cookie, found := CheckCookies(r, authClient)
 		if !found {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), entity.CookieInfoKey, cookie)
+		ctx := context.WithValue(r.Context(), domain.CookieInfoKey, cookie)
 		r = r.Clone(ctx)
 
 		next.ServeHTTP(w, r)
 	})
 }
 
-func NoAuthMid(next http.HandlerFunc, cookieApp application.AuthAppInterface) http.HandlerFunc {
+func NoAuthMid(next http.HandlerFunc, authClient authclient.AuthClientInterface) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, found := CheckCookies(r, cookieApp)
+		_, found := CheckCookies(r, authClient)
 		if found {
 			w.WriteHeader(http.StatusForbidden)
 			return
@@ -71,11 +70,16 @@ func CSRFSettingMid(next http.Handler) http.Handler {
 }
 
 // CheckCookies returns *CookieInfo and true if cookie is present in sessions slice, nil and false othervise
-func CheckCookies(r *http.Request, cookieApp application.AuthAppInterface) (*entity.CookieInfo, bool) {
-	cookie, err := r.Cookie(string(entity.CookieNameKey))
-	if err == http.ErrNoCookie {
+func CheckCookies(r *http.Request, authClient authclient.AuthClientInterface) (*domain.CookieInfo, bool) {
+	cookie, err := r.Cookie(string(domain.DefaultCookieName))
+	if err != nil {
 		return nil, false
 	}
 
-	return cookieApp.CheckCookie(cookie)
+	cookieInfo, err := authClient.SearchCookieByValue(context.Background(), cookie.Value)
+	if err != nil {
+		return nil, false
+	}
+
+	return cookieInfo, true
 }
