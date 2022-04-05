@@ -6,11 +6,10 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthRepoInterface interface {
-	CheckUserCredentials(ctx context.Context, username string, password string) (userID uint64, err error)
+	GetPasswordHash(ctx context.Context, username string) (userID uint64, passwordHash []byte, err error)
 	AddCookieInfo(ctx context.Context, cookieInfo domain.CookieInfo) error
 	GetCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error)
 	GetCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error)
@@ -25,43 +24,34 @@ func NewAuthRepo(postgresDB *pgxpool.Pool) *AuthRepo {
 	return &AuthRepo{postgresDB: postgresDB}
 }
 
-func (repo *AuthRepo) CheckUserCredentials(ctx context.Context, username string, password string) (userID uint64, err error) {
+func (repo *AuthRepo) GetPasswordHash(ctx context.Context, username string) (userID uint64, passwordHash []byte, err error) {
 	tx, err := repo.postgresDB.Begin(context.Background())
 	if err != nil {
-		return 0, domain.TransactionBeginError
+		return 0, nil, domain.TransactionBeginError
 	}
 	defer tx.Rollback(context.Background())
 
-	getUserPasswordQuery := `SELECT user_id, password_hash
-							 FROM Users 
+	getUserPasswordQuery := `SELECT id, password_hash
+							 FROM users 
 							 WHERE username=$1`
 
-	passwordHash := make([]byte, 0)
+	passwordHash = make([]byte, 0)
 
 	row := tx.QueryRow(context.Background(), getUserPasswordQuery, username)
 	err = row.Scan(&userID, &passwordHash)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return 0, domain.UserNotFoundError
+			return 0, nil, domain.UserNotFoundError
 		}
 
-		return 0, err
-	}
-
-	err = bcrypt.CompareHashAndPassword(passwordHash, []byte(password))
-	if err != nil {
-		if err == bcrypt.ErrMismatchedHashAndPassword {
-			return 0, domain.IncorrectPasswordError
-		}
-
-		return 0, err
+		return 0, nil, err
 	}
 
 	err = tx.Commit(context.Background())
 	if err != nil {
-		return 0, domain.TransactionCommitError
+		return 0, nil, domain.TransactionCommitError
 	}
-	return userID, nil
+	return userID, passwordHash, nil
 }
 
 func (repo *AuthRepo) AddCookieInfo(ctx context.Context, cookieInfo domain.CookieInfo) error {
@@ -71,9 +61,9 @@ func (repo *AuthRepo) AddCookieInfo(ctx context.Context, cookieInfo domain.Cooki
 	}
 	defer tx.Rollback(context.Background())
 
-	addCookieQuery := `UPDATE user
+	addCookieQuery := `UPDATE users
 					   SET cookie_value = $2, cookie_expiry = $3
-					   WHERE user_id = $1`
+					   WHERE id = $1`
 
 	result, err := tx.Exec(context.Background(), addCookieQuery, cookieInfo.UserID, cookieInfo.Cookie.Value, cookieInfo.Cookie.Expires)
 	if err != nil {
@@ -98,8 +88,8 @@ func (repo *AuthRepo) GetCookieByValue(ctx context.Context, cookieValue string) 
 	}
 	defer tx.Rollback(context.Background())
 
-	getCookieByValueQuery := `SELECT user_id, cookie_expiry
-							  FROM user
+	getCookieByValueQuery := `SELECT id, cookie_expiry
+							  FROM users
 							  WHERE cookie_value = $1`
 
 	row := tx.QueryRow(context.Background(), getCookieByValueQuery, cookieValue)
@@ -129,7 +119,7 @@ func (repo *AuthRepo) GetCookieByUserID(ctx context.Context, userID uint64) (coo
 	defer tx.Rollback(context.Background())
 
 	getCookieByUserIDQuery := `SELECT cookie_value, cookie_expiry
-							   FROM user
+							   FROM users
 							   WHERE cookie_value = $1`
 
 	row := tx.QueryRow(context.Background(), getCookieByUserIDQuery, userID)
@@ -158,9 +148,9 @@ func (repo *AuthRepo) DeleteCookie(ctx context.Context, cookieValue string) erro
 	}
 	defer tx.Rollback(context.Background())
 
-	deleteCookieQuery := `UPDATE user
+	deleteCookieQuery := `UPDATE users
 						  SET cookie_value = '', cookie_expiry = now()
-						  WHERE user.cookie_value = $1`
+						  WHERE users.cookie_value = $1`
 
 	result, err := tx.Exec(context.Background(), deleteCookieQuery, cookieValue)
 	if err != nil {

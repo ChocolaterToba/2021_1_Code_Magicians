@@ -6,6 +6,8 @@ import (
 	"pinterest/services/auth/domain"
 	repository "pinterest/services/auth/infrastructure"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthAppInterface interface {
@@ -26,8 +28,17 @@ func NewAuthApp(repo repository.AuthRepoInterface) *AuthApp {
 }
 
 func (app *AuthApp) LoginUser(ctx context.Context, username string, password string) (cookie domain.CookieInfo, err error) {
-	userId, err := app.repo.CheckUserCredentials(ctx, username, password)
+	userId, passwordHash, err := app.repo.GetPasswordHash(ctx, username)
 	if err != nil {
+		return domain.CookieInfo{}, err
+	}
+
+	err = bcrypt.CompareHashAndPassword(passwordHash, []byte(password))
+	if err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return domain.CookieInfo{}, domain.IncorrectPasswordError
+		}
+
 		return domain.CookieInfo{}, err
 	}
 

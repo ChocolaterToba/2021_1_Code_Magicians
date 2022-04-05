@@ -7,6 +7,7 @@ import (
 	authfacade "pinterest/interfaces/auth"
 	"pinterest/interfaces/metrics"
 	mid "pinterest/interfaces/middleware"
+	profilefacade "pinterest/interfaces/profile"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -14,7 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfacade.AuthFacade, csrfOn bool, httpOn bool) *mux.Router {
+func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfacade.AuthFacade, profileFacade *profilefacade.ProfileFacade, csrfOn bool, httpOn bool) *mux.Router {
 	r := mux.NewRouter()
 
 	r.Use(mid.PanicMid, metrics.PrometheusMiddleware)
@@ -31,7 +32,7 @@ func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfac
 
 	r.Handle("/metrics", promhttp.Handler())
 
-	// r.HandleFunc("/api/auth/signup", mid.NoAuthMid(authInfo.HandleCreateUser, authApp)).Methods("POST")
+	r.HandleFunc("/api/auth/signup", mid.NoAuthMid(profileFacade.CreateUser, authClient)).Methods("POST")
 	r.HandleFunc("/api/auth/login", mid.NoAuthMid(authFacade.LoginUser, authClient)).Methods("POST")
 	r.HandleFunc("/api/auth/logout", mid.AuthMid(authFacade.LogoutUser, authClient)).Methods("POST")
 	r.HandleFunc("/api/auth/check", authFacade.CheckUser).Methods("GET")

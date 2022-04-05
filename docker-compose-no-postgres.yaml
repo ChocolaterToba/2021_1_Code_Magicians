@@ -7,15 +7,19 @@ services:
       - 8080:8080
     depends_on:
       - auth-service
+      - user-service
     command: ["go", "run", "server_main.go"]
   
   auth-service:
     build: server
-    # ports are not needed if we only communicate inside docker-compose network
+    # exposed ports are not needed if we only communicate inside docker-compose network
     # ports:
     #   - 8081:8081
     command: ["go", "run", "./cmd/auth/"]
-
-volumes:
-  postgres-volume:
-    
+  
+  user-service:
+    build: server
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8082:8082
+    command: ["go", "run", "./cmd/user/"]

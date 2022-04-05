@@ -5,9 +5,12 @@ import (
 	"net/http"
 	"os"
 	authclient "pinterest/clients/auth"
+	userclient "pinterest/clients/user"
 	authfacade "pinterest/interfaces/auth"
+	profilefacade "pinterest/interfaces/profile"
 	"pinterest/interfaces/routing"
 	authproto "pinterest/services/auth/proto"
+	userproto "pinterest/services/user/proto"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -61,12 +64,20 @@ func runServer(addr string) {
 	}
 	defer sessionAuth.Close()
 
+	sessionUser, err := grpc.Dial(os.Getenv(dockerStatus+"_USER_PREFIX")+":8082", grpc.WithInsecure())
+	if err != nil {
+		sugarLogger.Fatal("Can not create session for User service")
+	}
+	defer sessionAuth.Close()
+
 	authClient := authclient.NewAuthClient(authproto.NewAuthClient(sessionAuth))
+	userClient := userclient.NewUserClient(userproto.NewUserClient(sessionUser))
 
 	authFacade := authfacade.NewAuthFacade(authClient, logger)
+	profilefacade := profilefacade.NewProfileFacade(userClient, authClient, logger)
 	// TODO divide file
 
-	r := routing.CreateRouter(authClient, authFacade, os.Getenv("CSRF_ON") == "true", os.Getenv("HTTPS_ON") == "true")
+	r := routing.CreateRouter(authClient, authFacade, profilefacade, os.Getenv("CSRF_ON") == "true", os.Getenv("HTTPS_ON") == "true")
 
 	allowedOrigins := make([]string, 0)
 	switch os.Getenv("HTTPS_ON") {
