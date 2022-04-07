@@ -21,7 +21,7 @@ type AuthClient interface {
 	LoginUser(ctx context.Context, in *UserAuth, opts ...grpc.CallOption) (*CookieInfo, error)
 	SearchCookieByValue(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*CookieInfo, error)
 	SearchCookieByUserID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*CookieInfo, error)
-	LogoutUser(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*Error, error)
+	LogoutUser(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type authClient struct {
@@ -59,8 +59,8 @@ func (c *authClient) SearchCookieByUserID(ctx context.Context, in *UserID, opts 
 	return out, nil
 }
 
-func (c *authClient) LogoutUser(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*Error, error) {
-	out := new(Error)
+func (c *authClient) LogoutUser(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/auth.Auth/LogoutUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ type AuthServer interface {
 	LoginUser(context.Context, *UserAuth) (*CookieInfo, error)
 	SearchCookieByValue(context.Context, *CookieValue) (*CookieInfo, error)
 	SearchCookieByUserID(context.Context, *UserID) (*CookieInfo, error)
-	LogoutUser(context.Context, *CookieValue) (*Error, error)
+	LogoutUser(context.Context, *CookieValue) (*Empty, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -92,7 +92,7 @@ func (UnimplementedAuthServer) SearchCookieByValue(context.Context, *CookieValue
 func (UnimplementedAuthServer) SearchCookieByUserID(context.Context, *UserID) (*CookieInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchCookieByUserID not implemented")
 }
-func (UnimplementedAuthServer) LogoutUser(context.Context, *CookieValue) (*Error, error) {
+func (UnimplementedAuthServer) LogoutUser(context.Context, *CookieValue) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LogoutUser not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}

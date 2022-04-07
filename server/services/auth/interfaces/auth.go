@@ -48,11 +48,11 @@ func (facade *AuthFacade) SearchCookieByUserID(ctx context.Context, in *pb.UserI
 	return domain.ToPbCookieInfo(result), nil
 }
 
-func (facade *AuthFacade) LogoutUser(ctx context.Context, in *pb.CookieValue) (*pb.Error, error) {
+func (facade *AuthFacade) LogoutUser(ctx context.Context, in *pb.CookieValue) (*pb.Empty, error) {
 	err := facade.app.LogoutUser(ctx, in.GetCookieValue())
 	if err != nil {
-		return &pb.Error{}, errors.Wrap(err, "Could not check user credentials:")
+		return &pb.Empty{}, errors.Wrap(err, "Could not check user credentials:")
 	}
 
-	return &pb.Error{}, nil
+	return &pb.Empty{}, nil
 }

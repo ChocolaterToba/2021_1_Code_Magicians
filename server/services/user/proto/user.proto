@@ -5,8 +5,6 @@ syntax = "proto3";
 
 option go_package = "pinterest/services/user/proto";
 
-import "google/protobuf/empty.proto";
-
 
 package user;
 
@@ -73,15 +71,15 @@ message SearchInput {
   string keyWords = 1;
 }
 
-message Error {}
+message Empty {}
 
 service User {
   rpc   CreateUser(UserReg) returns (UserID) {}
-  rpc   EditUser(UserEditInput) returns (Error) {}
+  rpc   EditUser(UserEditInput) returns (Empty) {}
   // rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
-  // rpc   DeleteUser(UserID) returns (Error) {}
+  // rpc   DeleteUser(UserID) returns (Empty) {}
   rpc   GetUserByUserID(UserID) returns (UserOutput) {}
   rpc   GetUserByUsername(Username) returns (UserOutput) {}
-  rpc   GetUsers(google.protobuf.Empty) returns (UsersListOutput) {}
-  rpc   ChangePassword(Password) returns (Error) {}
+  rpc   GetUsers(Empty) returns (UsersListOutput) {}
+  rpc   ChangePassword(Password) returns (Empty) {}
   }

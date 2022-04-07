@@ -31,9 +31,9 @@ func (facade *UserFacade) CreateUser(ctx context.Context, in *pb.UserReg) (*pb.U
 	return &pb.UserID{Uid: userID}, nil
 }
 
-func (facade *UserFacade) EditUser(ctx context.Context, in *pb.UserEditInput) (*pb.Error, error) {
-	// TODO
-	return &pb.Error{}, nil
+func (facade *UserFacade) EditUser(ctx context.Context, in *pb.UserEditInput) (*pb.Empty, error) {
+	err := facade.app.EditUser(ctx, domain.PbUserEditinputToUser(in))
+	return &pb.Empty{}, err
 }
 
 func (facade *UserFacade) GetUserByUserID(ctx context.Context, in *pb.UserID) (*pb.UserOutput, error) {
@@ -51,7 +51,7 @@ func (facade *UserFacade) GetUsers(ctx context.Context, in *empty.Empty) (*pb.Us
 	return &pb.UsersListOutput{}, nil
 }
 
-func (facade *UserFacade) ChangePassword(ctx context.Context, in *pb.Password) (*pb.Error, error) {
+func (facade *UserFacade) ChangePassword(ctx context.Context, in *pb.Password) (*pb.Empty, error) {
 	// TODO
-	return &pb.Error{}, nil
+	return &pb.Empty{}, nil
 }

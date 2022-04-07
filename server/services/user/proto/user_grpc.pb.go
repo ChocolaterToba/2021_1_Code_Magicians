@@ -4,7 +4,6 @@ package proto
 
 import (
 	context "context"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,13 +19,13 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserClient interface {
 	CreateUser(ctx context.Context, in *UserReg, opts ...grpc.CallOption) (*UserID, error)
-	EditUser(ctx context.Context, in *UserEditInput, opts ...grpc.CallOption) (*Error, error)
+	EditUser(ctx context.Context, in *UserEditInput, opts ...grpc.CallOption) (*Empty, error)
 	// rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
-	// rpc   DeleteUser(UserID) returns (Error) {}
+	// rpc   DeleteUser(UserID) returns (Empty) {}
 	GetUserByUserID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error)
 	GetUserByUsername(ctx context.Context, in *Username, opts ...grpc.CallOption) (*UserOutput, error)
-	GetUsers(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*UsersListOutput, error)
-	ChangePassword(ctx context.Context, in *Password, opts ...grpc.CallOption) (*Error, error)
+	GetUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UsersListOutput, error)
+	ChangePassword(ctx context.Context, in *Password, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type userClient struct {
@@ -46,8 +45,8 @@ func (c *userClient) CreateUser(ctx context.Context, in *UserReg, opts ...grpc.C
 	return out, nil
 }
 
-func (c *userClient) EditUser(ctx context.Context, in *UserEditInput, opts ...grpc.CallOption) (*Error, error) {
-	out := new(Error)
+func (c *userClient) EditUser(ctx context.Context, in *UserEditInput, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/user.User/EditUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -73,7 +72,7 @@ func (c *userClient) GetUserByUsername(ctx context.Context, in *Username, opts .
 	return out, nil
 }
 
-func (c *userClient) GetUsers(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*UsersListOutput, error) {
+func (c *userClient) GetUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UsersListOutput, error) {
 	out := new(UsersListOutput)
 	err := c.cc.Invoke(ctx, "/user.User/GetUsers", in, out, opts...)
 	if err != nil {
@@ -82,8 +81,8 @@ func (c *userClient) GetUsers(ctx context.Context, in *empty.Empty, opts ...grpc
 	return out, nil
 }
 
-func (c *userClient) ChangePassword(ctx context.Context, in *Password, opts ...grpc.CallOption) (*Error, error) {
-	out := new(Error)
+func (c *userClient) ChangePassword(ctx context.Context, in *Password, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/user.User/ChangePassword", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -96,13 +95,13 @@ func (c *userClient) ChangePassword(ctx context.Context, in *Password, opts ...g
 // for forward compatibility
 type UserServer interface {
 	CreateUser(context.Context, *UserReg) (*UserID, error)
-	EditUser(context.Context, *UserEditInput) (*Error, error)
+	EditUser(context.Context, *UserEditInput) (*Empty, error)
 	// rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
-	// rpc   DeleteUser(UserID) returns (Error) {}
+	// rpc   DeleteUser(UserID) returns (Empty) {}
 	GetUserByUserID(context.Context, *UserID) (*UserOutput, error)
 	GetUserByUsername(context.Context, *Username) (*UserOutput, error)
-	GetUsers(context.Context, *empty.Empty) (*UsersListOutput, error)
-	ChangePassword(context.Context, *Password) (*Error, error)
+	GetUsers(context.Context, *Empty) (*UsersListOutput, error)
+	ChangePassword(context.Context, *Password) (*Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -113,7 +112,7 @@ type UnimplementedUserServer struct {
 func (UnimplementedUserServer) CreateUser(context.Context, *UserReg) (*UserID, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUserServer) EditUser(context.Context, *UserEditInput) (*Error, error) {
+func (UnimplementedUserServer) EditUser(context.Context, *UserEditInput) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditUser not implemented")
 }
 func (UnimplementedUserServer) GetUserByUserID(context.Context, *UserID) (*UserOutput, error) {
@@ -122,10 +121,10 @@ func (UnimplementedUserServer) GetUserByUserID(context.Context, *UserID) (*UserO
 func (UnimplementedUserServer) GetUserByUsername(context.Context, *Username) (*UserOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByUsername not implemented")
 }
-func (UnimplementedUserServer) GetUsers(context.Context, *empty.Empty) (*UsersListOutput, error) {
+func (UnimplementedUserServer) GetUsers(context.Context, *Empty) (*UsersListOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
-func (UnimplementedUserServer) ChangePassword(context.Context, *Password) (*Error, error) {
+func (UnimplementedUserServer) ChangePassword(context.Context, *Password) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
@@ -214,7 +213,7 @@ func _User_GetUserByUsername_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _User_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -226,7 +225,7 @@ func _User_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(inter
 		FullMethod: "/user.User/GetUsers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).GetUsers(ctx, req.(*empty.Empty))
+		return srv.(UserServer).GetUsers(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
