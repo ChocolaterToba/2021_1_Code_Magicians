@@ -38,7 +38,7 @@ func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfac
 	r.HandleFunc("/api/auth/check", authFacade.CheckUser).Methods("GET")
 
 	// r.HandleFunc("/api/profile/password", mid.AuthMid(profileInfo.HandleChangePassword, authApp)).Methods("PUT")
-	// r.HandleFunc("/api/profile/edit", mid.AuthMid(profileInfo.HandleEditProfile, authApp)).Methods("PUT")
+	r.HandleFunc("/api/profile/edit", mid.AuthMid(profileFacade.EditUser, authClient)).Methods("PUT")
 	// r.HandleFunc("/api/profile/delete", mid.AuthMid(profileInfo.HandleDeleteProfile, authApp)).Methods("DELETE")
 	// r.HandleFunc("/api/profile/{id:[0-9]+}", profileInfo.HandleGetProfile).Methods("GET") // Is preferred over next one
 	// r.HandleFunc("/api/profile/{username}", profileInfo.HandleGetProfile).Methods("GET")

@@ -3,10 +3,11 @@ package user
 import (
 	"context"
 	"pinterest/domain"
+	userdomain "pinterest/services/user/domain"
 	userproto "pinterest/services/user/proto"
+	"strings"
 
 	"github.com/pkg/errors"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type UserClientInterface interface {
@@ -43,6 +44,9 @@ func (client *UserClient) EditUser(ctx context.Context, user domain.User) (err e
 		domain.ToPbUserEdit(user))
 
 	if err != nil {
+		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
+			return domain.ErrUserNotFound
+		}
 		return errors.Wrap(err, "user client error: ")
 	}
 
@@ -72,7 +76,7 @@ func (client *UserClient) GetUserByUsername(ctx context.Context, username string
 }
 
 func (client *UserClient) GetUsers(ctx context.Context) (users []domain.User, err error) {
-	pbUsers, err := client.userClient.GetUsers(context.Background(), &emptypb.Empty{})
+	pbUsers, err := client.userClient.GetUsers(context.Background(), &userproto.Empty{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "user client error: ")

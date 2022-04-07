@@ -72,3 +72,32 @@ func (facade *ProfileFacade) CreateUser(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 	w.Write(responseBody)
 }
+
+// EditUser changes users's non-credential (like email, first name, etc) data to one specified
+func (facade *ProfileFacade) EditUser(w http.ResponseWriter, r *http.Request) {
+	userInput := new(domain.User)
+	err := json.NewDecoder(r.Body).Decode(userInput)
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	userCookie := r.Context().Value(domain.CookieInfoKey).(*domain.CookieInfo)
+	userInput.UserID = userCookie.UserID
+
+	err = facade.userClient.EditUser(context.Background(), *userInput)
+
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		switch err {
+		case domain.ErrUserNotFound:
+			w.WriteHeader(http.StatusNotFound)
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
