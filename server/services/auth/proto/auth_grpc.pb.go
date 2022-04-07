@@ -22,6 +22,7 @@ type AuthClient interface {
 	SearchCookieByValue(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*CookieInfo, error)
 	SearchCookieByUserID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*CookieInfo, error)
 	LogoutUser(ctx context.Context, in *CookieValue, opts ...grpc.CallOption) (*Empty, error)
+	ChangeCredentials(ctx context.Context, in *Credentials, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type authClient struct {
@@ -68,6 +69,15 @@ func (c *authClient) LogoutUser(ctx context.Context, in *CookieValue, opts ...gr
 	return out, nil
 }
 
+func (c *authClient) ChangeCredentials(ctx context.Context, in *Credentials, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/auth.Auth/ChangeCredentials", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServer is the server API for Auth service.
 // All implementations must embed UnimplementedAuthServer
 // for forward compatibility
@@ -76,6 +86,7 @@ type AuthServer interface {
 	SearchCookieByValue(context.Context, *CookieValue) (*CookieInfo, error)
 	SearchCookieByUserID(context.Context, *UserID) (*CookieInfo, error)
 	LogoutUser(context.Context, *CookieValue) (*Empty, error)
+	ChangeCredentials(context.Context, *Credentials) (*Empty, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -94,6 +105,9 @@ func (UnimplementedAuthServer) SearchCookieByUserID(context.Context, *UserID) (*
 }
 func (UnimplementedAuthServer) LogoutUser(context.Context, *CookieValue) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LogoutUser not implemented")
+}
+func (UnimplementedAuthServer) ChangeCredentials(context.Context, *Credentials) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeCredentials not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 
@@ -180,6 +194,24 @@ func _Auth_LogoutUser_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_ChangeCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Credentials)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).ChangeCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/auth.Auth/ChangeCredentials",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).ChangeCredentials(ctx, req.(*Credentials))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -202,6 +234,10 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LogoutUser",
 			Handler:    _Auth_LogoutUser_Handler,
+		},
+		{
+			MethodName: "ChangeCredentials",
+			Handler:    _Auth_ChangeCredentials_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

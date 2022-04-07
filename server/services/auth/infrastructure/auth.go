@@ -14,6 +14,8 @@ type AuthRepoInterface interface {
 	GetCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error)
 	GetCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error)
 	DeleteCookie(ctx context.Context, cookieValue string) error
+	GetUserCredentialsByID(ctx context.Context, userID uint64) (username string, passwordHash []byte, err error)
+	UpdateUserCredentials(ctx context.Context, userID uint64, username string, passwordHash []byte) (err error)
 }
 
 type AuthRepo struct {
@@ -159,6 +161,62 @@ func (repo *AuthRepo) DeleteCookie(ctx context.Context, cookieValue string) erro
 
 	if result.RowsAffected() != 1 {
 		return domain.CookieNotFoundError
+	}
+
+	err = tx.Commit(context.Background())
+	if err != nil {
+		return domain.TransactionCommitError
+	}
+	return nil
+}
+
+func (repo *AuthRepo) GetUserCredentialsByID(ctx context.Context, userID uint64) (username string, passwordHash []byte, err error) {
+	tx, err := repo.postgresDB.Begin(context.Background())
+	if err != nil {
+		return "", nil, domain.TransactionBeginError
+	}
+	defer tx.Rollback(context.Background())
+
+	getUserCredentialsByID := `SELECT username, password_hash
+							   FROM users
+							   WHERE id = $1`
+
+	row := tx.QueryRow(context.Background(), getUserCredentialsByID, userID)
+	err = row.Scan(&username, &passwordHash)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return "", nil, domain.UserNotFoundError
+		}
+
+		return "", nil, err
+	}
+
+	err = tx.Commit(context.Background())
+	if err != nil {
+		return "", nil, domain.TransactionCommitError
+	}
+	return username, passwordHash, nil
+}
+
+func (repo *AuthRepo) UpdateUserCredentials(ctx context.Context, userID uint64, username string, passwordHash []byte) (err error) {
+	tx, err := repo.postgresDB.Begin(context.Background())
+	if err != nil {
+		return domain.TransactionBeginError
+	}
+	defer tx.Rollback(context.Background())
+
+	updateUserCredentialsQuery := `UPDATE users
+								   SET username = $2, password_hash = $3
+								   WHERE id = $1`
+
+	result, err := tx.Exec(context.Background(), updateUserCredentialsQuery, userID, username, passwordHash)
+	if err != nil {
+		// TODO: parse username conflict
+		return err
+	}
+
+	if result.RowsAffected() != 1 {
+		return domain.UserNotFoundError
 	}
 
 	err = tx.Commit(context.Background())

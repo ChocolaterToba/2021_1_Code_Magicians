@@ -14,7 +14,8 @@ type AuthAppInterface interface {
 	LoginUser(ctx context.Context, username string, password string) (cookie domain.CookieInfo, err error)
 	SearchCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error)
 	SearchCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error)
-	LogoutUser(ctx context.Context, cookieValue string) error
+	LogoutUser(ctx context.Context, cookieValue string) (err error)
+	ChangeCredentials(ctx context.Context, userID uint64, username string, password string) (err error)
 }
 
 type AuthApp struct {
@@ -74,6 +75,26 @@ func (app *AuthApp) SearchCookieByUserID(ctx context.Context, userID uint64) (co
 	return app.repo.GetCookieByUserID(ctx, userID)
 }
 
-func (app *AuthApp) LogoutUser(ctx context.Context, cookieValue string) error {
+func (app *AuthApp) LogoutUser(ctx context.Context, cookieValue string) (err error) {
 	return app.repo.DeleteCookie(ctx, cookieValue)
+}
+
+func (app *AuthApp) ChangeCredentials(ctx context.Context, userID uint64, username string, password string) (err error) {
+	//TODO: add transactions here?
+	dbUsername, dbPasswordHash, err := app.repo.GetUserCredentialsByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if username != "" {
+		dbUsername = username
+	}
+	if password != "" {
+		dbPasswordHash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+	}
+
+	return app.repo.UpdateUserCredentials(ctx, userID, dbUsername, dbPasswordHash)
 }

@@ -40,6 +40,12 @@ message CookieInfo {
   Cookie cookie = 2;
 }
 
+message Credentials {
+  uint64  userID = 1;
+  string  username = 2;
+  string  password = 3;
+}
+
 message Empty {}
 
 service Auth {
@@ -47,4 +53,5 @@ service Auth {
   rpc   SearchCookieByValue(CookieValue) returns (CookieInfo) {}
   rpc   SearchCookieByUserID(UserID) returns (CookieInfo) {}
   rpc   LogoutUser(CookieValue) returns (Empty) {}
+  rpc   ChangeCredentials(Credentials) returns (Empty) {}
 }

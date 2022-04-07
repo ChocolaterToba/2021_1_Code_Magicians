@@ -56,3 +56,12 @@ func (facade *AuthFacade) LogoutUser(ctx context.Context, in *pb.CookieValue) (*
 
 	return &pb.Empty{}, nil
 }
+
+func (facade *AuthFacade) ChangeCredentials(ctx context.Context, in *pb.Credentials) (*pb.Empty, error) {
+	err := facade.app.ChangeCredentials(ctx, in.GetUserID(), in.GetUsername(), in.GetPassword())
+	if err != nil {
+		return &pb.Empty{}, errors.Wrap(err, "Could not change user credentials:")
+	}
+
+	return &pb.Empty{}, nil
+}
