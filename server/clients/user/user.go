@@ -13,10 +13,9 @@ import (
 type UserClientInterface interface {
 	CreateUser(ctx context.Context, user domain.User) (userID uint64, err error)
 	EditUser(ctx context.Context, user domain.User) (err error)
-	GetUserByUserID(ctx context.Context, userID uint64) (user domain.User, err error)
+	GetUserByID(ctx context.Context, userID uint64) (user domain.User, err error)
 	GetUserByUsername(ctx context.Context, username string) (user domain.User, err error)
 	GetUsers(ctx context.Context) (users []domain.User, err error)
-	ChangePassword(ctx context.Context, userID uint64, password string) (err error)
 }
 
 type UserClient struct {
@@ -53,8 +52,8 @@ func (client *UserClient) EditUser(ctx context.Context, user domain.User) (err e
 	return nil
 }
 
-func (client *UserClient) GetUserByUserID(ctx context.Context, userID uint64) (user domain.User, err error) {
-	pbUser, err := client.userClient.GetUserByUserID(context.Background(),
+func (client *UserClient) GetUserByID(ctx context.Context, userID uint64) (user domain.User, err error) {
+	pbUser, err := client.userClient.GetUserByID(context.Background(),
 		&userproto.UserID{Uid: userID})
 
 	if err != nil {
@@ -88,15 +87,4 @@ func (client *UserClient) GetUsers(ctx context.Context) (users []domain.User, er
 	}
 
 	return users, nil
-}
-
-func (client *UserClient) ChangePassword(ctx context.Context, userID uint64, password string) (err error) {
-	_, err = client.userClient.ChangePassword(context.Background(),
-		&userproto.Password{UserID: userID, Password: password})
-
-	if err != nil {
-		return errors.Wrap(err, "user client error: ")
-	}
-
-	return nil
 }

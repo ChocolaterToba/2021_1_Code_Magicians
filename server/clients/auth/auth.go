@@ -16,6 +16,7 @@ type AuthClientInterface interface {
 	SearchCookieByValue(ctx context.Context, cookieValue string) (cookie *domain.CookieInfo, err error)
 	SearchCookieByUserID(ctx context.Context, userID uint64) (cookie *domain.CookieInfo, err error)
 	LogoutUser(ctx context.Context, cookieValue string) error
+	ChangeCredentials(ctx context.Context, userID uint64, username, password string) (err error)
 }
 
 type AuthClient struct {
@@ -81,6 +82,21 @@ func (client *AuthClient) LogoutUser(ctx context.Context, cookieValue string) er
 		if strings.Contains(err.Error(), authdomain.CookieNotFoundError.Error()) {
 			return domain.ErrCookieNotFound
 		}
+		return errors.Wrap(err, "auth client error: ")
+	}
+
+	return nil
+}
+
+func (client *AuthClient) ChangeCredentials(ctx context.Context, userID uint64, username, password string) (err error) {
+	_, err = client.authClient.ChangeCredentials(context.Background(),
+		&authproto.Credentials{
+			UserID:   userID,
+			Username: username,
+			Password: password,
+		})
+
+	if err != nil {
 		return errors.Wrap(err, "auth client error: ")
 	}
 
