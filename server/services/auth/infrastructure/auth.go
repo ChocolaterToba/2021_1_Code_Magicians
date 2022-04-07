@@ -158,7 +158,7 @@ func (repo *AuthRepo) DeleteCookie(ctx context.Context, cookieValue string) erro
 	}
 
 	if result.RowsAffected() != 1 {
-		return domain.UserNotFoundError
+		return domain.CookieNotFoundError
 	}
 
 	err = tx.Commit(context.Background())
