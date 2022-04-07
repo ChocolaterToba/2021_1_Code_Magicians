@@ -85,6 +85,8 @@ func (facade *ProfileFacade) EditUser(w http.ResponseWriter, r *http.Request) {
 
 	userCookie := r.Context().Value(domain.CookieInfoKey).(*domain.CookieInfo)
 	userInput.UserID = userCookie.UserID
+	userInput.Username = ""
+	userInput.Password = ""
 
 	err = facade.userClient.EditUser(context.Background(), *userInput)
 

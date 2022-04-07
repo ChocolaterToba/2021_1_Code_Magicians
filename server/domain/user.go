@@ -6,8 +6,8 @@ type User struct {
 	UserID    uint64 `json:"userID,omitempty"`
 	Username  string `json:"username,omitempty"`
 	Password  string `json:"password,omitempty"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
+	FirstName string `json:"firstName,omitempty"`
+	LastName  string `json:"lastName,omitempty"`
 	Email     string `json:"email,omitempty"`
 }
 
@@ -27,6 +27,7 @@ func ToPbUserReg(user User) *userpb.UserReg {
 
 func ToPbUserEdit(user User) *userpb.UserEditInput {
 	return &userpb.UserEditInput{
+		UserID:    user.UserID,
 		Username:  user.Username,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,

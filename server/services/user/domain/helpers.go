@@ -16,6 +16,7 @@ func PbUserRegToUser(pbUser *pb.UserReg) User {
 
 func PbUserEditinputToUser(pbUser *pb.UserEditInput) User {
 	return User{
+		UserID:    pbUser.UserID,
 		Username:  pbUser.Username,
 		FirstName: pbUser.FirstName,
 		LastName:  pbUser.LastName,

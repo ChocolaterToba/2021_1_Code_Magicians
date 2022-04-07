@@ -17,10 +17,11 @@ message UserReg {
 }
 
 message UserEditInput {
-  string  Username = 1;
-  string  FirstName = 2;
-  string  LastName = 3;
-  string  Email = 4;
+  uint64  UserID = 1;
+  string  Username = 2;
+  string  FirstName = 3;
+  string  LastName = 4;
+  string  Email = 5;
 }
 
 message UserAuth {

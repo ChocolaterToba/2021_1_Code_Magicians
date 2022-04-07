@@ -29,6 +29,7 @@ func ToPbCookieInfo(cookieInfo CookieInfo) *authpb.CookieInfo {
 
 func ToCookie(pbCookie *authpb.Cookie, secure bool, httpOnly bool, sameSite http.SameSite) *http.Cookie {
 	return &http.Cookie{
+		Path:     "/",
 		Name:     DefaultCookieName,
 		Value:    pbCookie.GetValue(),
 		Expires:  pbCookie.GetExpires().AsTime(),
