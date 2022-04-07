@@ -36,7 +36,7 @@ func (app *UserApp) CreateUser(ctx context.Context, user domain.User) (userID ui
 }
 
 func (app *UserApp) GetUserByID(ctx context.Context, userID uint64) (user domain.User, err error) {
-	return app.repo.GetUserByID(ctx, user.UserID)
+	return app.repo.GetUserByID(ctx, userID)
 }
 
 func (app *UserApp) GetUserByUsername(ctx context.Context, username string) (user domain.User, err error) {

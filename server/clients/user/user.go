@@ -57,6 +57,9 @@ func (client *UserClient) GetUserByID(ctx context.Context, userID uint64) (user 
 		&userproto.UserID{Uid: userID})
 
 	if err != nil {
+		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
 		return domain.User{}, errors.Wrap(err, "user client error: ")
 	}
 
@@ -68,6 +71,9 @@ func (client *UserClient) GetUserByUsername(ctx context.Context, username string
 		&userproto.Username{Username: username})
 
 	if err != nil {
+		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
+			return domain.User{}, domain.ErrUserNotFound
+		}
 		return domain.User{}, errors.Wrap(err, "user client error: ")
 	}
 

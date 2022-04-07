@@ -40,9 +40,9 @@ func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfac
 	// r.HandleFunc("/api/profile/password", mid.AuthMid(profileInfo.HandleChangePassword, authApp)).Methods("PUT")
 	r.HandleFunc("/api/profile/edit", mid.AuthMid(profileFacade.EditUser, authClient)).Methods("PUT")
 	// r.HandleFunc("/api/profile/delete", mid.AuthMid(profileInfo.HandleDeleteProfile, authApp)).Methods("DELETE")
-	// r.HandleFunc("/api/profile/{id:[0-9]+}", profileInfo.HandleGetProfile).Methods("GET") // Is preferred over next one
-	// r.HandleFunc("/api/profile/{username}", profileInfo.HandleGetProfile).Methods("GET")
-	// r.HandleFunc("/api/profile", mid.AuthMid(profileInfo.HandleGetProfile, authApp)).Methods("GET")
+	r.HandleFunc("/api/profile", mid.AuthMid(profileFacade.GetCurrentUser, authClient)).Methods("GET")
+	r.HandleFunc("/api/profile/{id:[0-9]+}", profileFacade.GetUserByID).Methods("GET") // Is preferred over next one
+	r.HandleFunc("/api/profile/{username}", profileFacade.GetUserByUsername).Methods("GET")
 	// r.HandleFunc("/api/profile/avatar", mid.AuthMid(profileInfo.HandlePostAvatar, authApp)).Methods("PUT")
 	// r.HandleFunc("/api/profiles/search/{searchKey}", profileInfo.HandleGetProfilesByKeyWords).Methods("GET")
 
