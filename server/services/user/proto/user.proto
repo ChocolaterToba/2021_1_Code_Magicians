@@ -30,7 +30,7 @@ message UserAuth {
 }
 
 message UserOutput {
-  int64   UserID = 1;
+  uint64   UserID = 1;
   string  Username = 2;
   string  Email = 3;
   string  Avatar = 4;
@@ -63,11 +63,6 @@ message UploadAvatarResponse {
   uint32 size = 2;
 }
 
-message Password {
-  string  password = 1;
-  uint64  userID = 2;
-}
-
 message SearchInput {
   string keyWords = 1;
 }
@@ -79,8 +74,7 @@ service User {
   rpc   EditUser(UserEditInput) returns (Empty) {}
   // rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
   // rpc   DeleteUser(UserID) returns (Empty) {}
-  rpc   GetUserByUserID(UserID) returns (UserOutput) {}
+  rpc   GetUserByID(UserID) returns (UserOutput) {}
   rpc   GetUserByUsername(Username) returns (UserOutput) {}
   rpc   GetUsers(Empty) returns (UsersListOutput) {}
-  rpc   ChangePassword(Password) returns (Empty) {}
   }

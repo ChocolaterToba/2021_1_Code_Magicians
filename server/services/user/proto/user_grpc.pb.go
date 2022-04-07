@@ -22,10 +22,9 @@ type UserClient interface {
 	EditUser(ctx context.Context, in *UserEditInput, opts ...grpc.CallOption) (*Empty, error)
 	// rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
 	// rpc   DeleteUser(UserID) returns (Empty) {}
-	GetUserByUserID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error)
+	GetUserByID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error)
 	GetUserByUsername(ctx context.Context, in *Username, opts ...grpc.CallOption) (*UserOutput, error)
 	GetUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UsersListOutput, error)
-	ChangePassword(ctx context.Context, in *Password, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type userClient struct {
@@ -54,9 +53,9 @@ func (c *userClient) EditUser(ctx context.Context, in *UserEditInput, opts ...gr
 	return out, nil
 }
 
-func (c *userClient) GetUserByUserID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error) {
+func (c *userClient) GetUserByID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error) {
 	out := new(UserOutput)
-	err := c.cc.Invoke(ctx, "/user.User/GetUserByUserID", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/user.User/GetUserByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,15 +80,6 @@ func (c *userClient) GetUsers(ctx context.Context, in *Empty, opts ...grpc.CallO
 	return out, nil
 }
 
-func (c *userClient) ChangePassword(ctx context.Context, in *Password, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/user.User/ChangePassword", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -98,10 +88,9 @@ type UserServer interface {
 	EditUser(context.Context, *UserEditInput) (*Empty, error)
 	// rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
 	// rpc   DeleteUser(UserID) returns (Empty) {}
-	GetUserByUserID(context.Context, *UserID) (*UserOutput, error)
+	GetUserByID(context.Context, *UserID) (*UserOutput, error)
 	GetUserByUsername(context.Context, *Username) (*UserOutput, error)
 	GetUsers(context.Context, *Empty) (*UsersListOutput, error)
-	ChangePassword(context.Context, *Password) (*Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -115,17 +104,14 @@ func (UnimplementedUserServer) CreateUser(context.Context, *UserReg) (*UserID, e
 func (UnimplementedUserServer) EditUser(context.Context, *UserEditInput) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditUser not implemented")
 }
-func (UnimplementedUserServer) GetUserByUserID(context.Context, *UserID) (*UserOutput, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserByUserID not implemented")
+func (UnimplementedUserServer) GetUserByID(context.Context, *UserID) (*UserOutput, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
 }
 func (UnimplementedUserServer) GetUserByUsername(context.Context, *Username) (*UserOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByUsername not implemented")
 }
 func (UnimplementedUserServer) GetUsers(context.Context, *Empty) (*UsersListOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
-}
-func (UnimplementedUserServer) ChangePassword(context.Context, *Password) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ChangePassword not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -176,20 +162,20 @@ func _User_EditUser_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _User_GetUserByUserID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _User_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServer).GetUserByUserID(ctx, in)
+		return srv.(UserServer).GetUserByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/user.User/GetUserByUserID",
+		FullMethod: "/user.User/GetUserByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).GetUserByUserID(ctx, req.(*UserID))
+		return srv.(UserServer).GetUserByID(ctx, req.(*UserID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -230,24 +216,6 @@ func _User_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-func _User_ChangePassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Password)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServer).ChangePassword(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/user.User/ChangePassword",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServer).ChangePassword(ctx, req.(*Password))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -264,8 +232,8 @@ var User_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _User_EditUser_Handler,
 		},
 		{
-			MethodName: "GetUserByUserID",
-			Handler:    _User_GetUserByUserID_Handler,
+			MethodName: "GetUserByID",
+			Handler:    _User_GetUserByID_Handler,
 		},
 		{
 			MethodName: "GetUserByUsername",
@@ -274,10 +242,6 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsers",
 			Handler:    _User_GetUsers_Handler,
-		},
-		{
-			MethodName: "ChangePassword",
-			Handler:    _User_ChangePassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

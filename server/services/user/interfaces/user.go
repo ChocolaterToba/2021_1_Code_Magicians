@@ -35,22 +35,26 @@ func (facade *UserFacade) EditUser(ctx context.Context, in *pb.UserEditInput) (*
 	return &pb.Empty{}, err
 }
 
-func (facade *UserFacade) GetUserByUserID(ctx context.Context, in *pb.UserID) (*pb.UserOutput, error) {
-	// TODO
-	return &pb.UserOutput{}, nil
+func (facade *UserFacade) GetUserByID(ctx context.Context, in *pb.UserID) (*pb.UserOutput, error) {
+	user, err := facade.app.GetUserByID(ctx, in.GetUid())
+	if err != nil {
+		return &pb.UserOutput{}, errors.Wrap(err, "Could not get user by id:")
+	}
+	return domain.UserToPbUserOutput(user), nil
 }
 
 func (facade *UserFacade) GetUserByUsername(ctx context.Context, in *pb.Username) (*pb.UserOutput, error) {
-	// TODO
-	return &pb.UserOutput{}, nil
+	user, err := facade.app.GetUserByUsername(ctx, in.GetUsername())
+	if err != nil {
+		return &pb.UserOutput{}, errors.Wrap(err, "Could not get user by username:")
+	}
+	return domain.UserToPbUserOutput(user), nil
 }
 
 func (facade *UserFacade) GetUsers(ctx context.Context, in *pb.Empty) (*pb.UsersListOutput, error) {
-	// TODO
-	return &pb.UsersListOutput{}, nil
-}
-
-func (facade *UserFacade) ChangePassword(ctx context.Context, in *pb.Password) (*pb.Empty, error) {
-	// TODO
-	return &pb.Empty{}, nil
+	users, err := facade.app.GetUsers(ctx)
+	if err != nil {
+		return &pb.UsersListOutput{}, errors.Wrap(err, "Could not get users:")
+	}
+	return domain.UsersToPbUserListOutput(users), nil
 }

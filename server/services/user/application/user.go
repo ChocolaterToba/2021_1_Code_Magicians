@@ -10,6 +10,9 @@ import (
 
 type UserAppInterface interface {
 	CreateUser(ctx context.Context, user domain.User) (userID uint64, err error)
+	GetUserByID(ctx context.Context, userID uint64) (user domain.User, err error)
+	GetUserByUsername(ctx context.Context, username string) (user domain.User, err error)
+	GetUsers(ctx context.Context) (users []domain.User, err error)
 	EditUser(ctx context.Context, user domain.User) (err error)
 }
 
@@ -30,6 +33,18 @@ func (app *UserApp) CreateUser(ctx context.Context, user domain.User) (userID ui
 	}
 
 	return app.repo.CreateUser(ctx, user, passwordHash)
+}
+
+func (app *UserApp) GetUserByID(ctx context.Context, userID uint64) (user domain.User, err error) {
+	return app.repo.GetUserByID(ctx, user.UserID)
+}
+
+func (app *UserApp) GetUserByUsername(ctx context.Context, username string) (user domain.User, err error) {
+	return app.repo.GetUserByUsername(ctx, username)
+}
+
+func (app *UserApp) GetUsers(ctx context.Context) (users []domain.User, err error) {
+	return app.repo.GetUsers(ctx)
 }
 
 func (app *UserApp) EditUser(ctx context.Context, user domain.User) (err error) {

@@ -23,3 +23,23 @@ func PbUserEditinputToUser(pbUser *pb.UserEditInput) User {
 		Email:     pbUser.Email,
 	}
 }
+
+func UserToPbUserOutput(user User) *pb.UserOutput {
+	return &pb.UserOutput{
+		UserID:    user.UserID,
+		Username:  user.Username,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+	}
+}
+
+func UsersToPbUserListOutput(users []User) *pb.UsersListOutput {
+	result := make([]*pb.UserOutput, 0, len(users))
+	for _, user := range users {
+		result = append(result, UserToPbUserOutput(user))
+	}
+	return &pb.UsersListOutput{
+		Users: result,
+	}
+}
