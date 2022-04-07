@@ -6,7 +6,6 @@ import (
 	"pinterest/services/user/domain"
 	pb "pinterest/services/user/proto"
 
-	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/pkg/errors"
 	_ "google.golang.org/grpc"
 )
@@ -46,7 +45,7 @@ func (facade *UserFacade) GetUserByUsername(ctx context.Context, in *pb.Username
 	return &pb.UserOutput{}, nil
 }
 
-func (facade *UserFacade) GetUsers(ctx context.Context, in *empty.Empty) (*pb.UsersListOutput, error) {
+func (facade *UserFacade) GetUsers(ctx context.Context, in *pb.Empty) (*pb.UsersListOutput, error) {
 	// TODO
 	return &pb.UsersListOutput{}, nil
 }
