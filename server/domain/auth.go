@@ -33,9 +33,9 @@ func ToCookie(pbCookie *authpb.Cookie, secure bool, httpOnly bool, sameSite http
 		Name:     DefaultCookieName,
 		Value:    pbCookie.GetValue(),
 		Expires:  pbCookie.GetExpires().AsTime(),
-		Secure:   false,
-		HttpOnly: false,
-		SameSite: 0,
+		Secure:   secure,
+		HttpOnly: httpOnly,
+		SameSite: sameSite,
 	}
 }
 

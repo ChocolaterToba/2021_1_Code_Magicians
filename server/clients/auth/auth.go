@@ -40,7 +40,7 @@ func (client *AuthClient) LoginUser(ctx context.Context, username string, passwo
 		return nil, errors.Wrap(err, "auth client error: ")
 	}
 
-	cookie = domain.ToCookieInfo(pbCookie, true, true, http.SameSiteDefaultMode) // TODO: move settings to constants
+	cookie = domain.ToCookieInfo(pbCookie, false, true, http.SameSiteDefaultMode) // TODO: move settings to constants
 	return cookie, nil
 }
 
