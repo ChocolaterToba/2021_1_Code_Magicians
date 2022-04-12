@@ -15,7 +15,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfacade.AuthFacade, profileFacade *profilefacade.ProfileFacade, csrfOn bool, httpOn bool) *mux.Router {
+func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfacade.AuthFacade, profileFacade *profilefacade.ProfileFacade, csrfOn bool) *mux.Router {
 	r := mux.NewRouter()
 
 	r.Use(mid.PanicMid, metrics.PrometheusMiddleware)

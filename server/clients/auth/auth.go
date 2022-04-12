@@ -21,11 +21,13 @@ type AuthClientInterface interface {
 
 type AuthClient struct {
 	authClient authproto.AuthClient
+	httpsOn    bool
 }
 
-func NewAuthClient(authClient authproto.AuthClient) *AuthClient {
+func NewAuthClient(authClient authproto.AuthClient, httpsOn bool) *AuthClient {
 	return &AuthClient{
 		authClient: authClient,
+		httpsOn:    httpsOn,
 	}
 }
 
@@ -40,7 +42,11 @@ func (client *AuthClient) LoginUser(ctx context.Context, username string, passwo
 		return nil, errors.Wrap(err, "auth client error: ")
 	}
 
-	cookie = domain.ToCookieInfo(pbCookie, false, true, http.SameSiteDefaultMode) // TODO: move settings to constants
+	if client.httpsOn { // if https is on, we can use secure cookies
+		cookie = domain.ToCookieInfo(pbCookie, true, true, http.SameSiteNoneMode)
+	} else {
+		cookie = domain.ToCookieInfo(pbCookie, false, true, http.SameSiteDefaultMode)
+	}
 	return cookie, nil
 }
 

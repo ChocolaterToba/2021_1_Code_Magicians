@@ -70,22 +70,22 @@ func runServer(addr string) {
 	}
 	defer sessionAuth.Close()
 
-	authClient := authclient.NewAuthClient(authproto.NewAuthClient(sessionAuth))
+	authClient := authclient.NewAuthClient(authproto.NewAuthClient(sessionAuth), os.Getenv("HTTPS_ON") == "true")
 	userClient := userclient.NewUserClient(userproto.NewUserClient(sessionUser))
 
 	authFacade := authfacade.NewAuthFacade(authClient, logger)
 	profilefacade := profilefacade.NewProfileFacade(userClient, authClient, logger)
 	// TODO divide file
 
-	r := routing.CreateRouter(authClient, authFacade, profilefacade, os.Getenv("CSRF_ON") == "true", os.Getenv("HTTPS_ON") == "true")
+	r := routing.CreateRouter(authClient, authFacade, profilefacade, os.Getenv("CSRF_ON") == "true")
 
 	allowedOrigins := make([]string, 0)
 	switch os.Getenv("HTTPS_ON") {
 	case "true":
-		allowedOrigins = append(allowedOrigins, "https://pinterbest.ru:8081", "https://pinterbest.ru",
+		allowedOrigins = append(allowedOrigins, "https://gears4us.ru:8081", "https://gears4us.ru",
 			"https://127.0.0.1:8081", "https://51.250.76.99", "https://localhost:3001") // TODO: replace with actual
 	case "false":
-		allowedOrigins = append(allowedOrigins, "http://pinterbest.ru:8081", "http://pinterbest.ru",
+		allowedOrigins = append(allowedOrigins, "http://gears4us.ru:8081", "http://gears4us.ru",
 			"http://127.0.0.1:8081", "http://51.250.76.99", "http://localhost:3001")
 	default:
 		sugarLogger.Fatal("HTTPS_ON variable is not set")
@@ -100,7 +100,7 @@ func runServer(addr string) {
 	handler := c.Handler(r)
 	fmt.Printf("Starting server at localhost%s\n", addr)
 
-	switch os.Getenv("HTTPS_ON") {
+	switch os.Getenv("SERVE_HTTPS_ON") {
 	case "true":
 		sugarLogger.Fatal(http.ListenAndServeTLS(addr, "cert.pem", "key.pem", handler))
 	case "false":
