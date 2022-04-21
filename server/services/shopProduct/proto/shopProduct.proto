@@ -21,6 +21,10 @@ message CreateShopRequest {
   repeated uint64 manager_ids = 3;
 }
 
+message CreateShopResponse {
+  uint64 id = 1;
+}
+
 message EditShopRequest {
   uint64 id = 1;
   string title = 2;
@@ -60,6 +64,10 @@ message CreateProductRequest {
   uint64 shop_id = 10;
 }
 
+message CreateProductResponse {
+  uint64 id = 1;
+}
+
 message EditProductRequest {
   uint64 id = 1;
   string title = 2;
@@ -78,16 +86,13 @@ message GetProductRequest {
   uint64 id = 1;
 }
 
-message StatusResponse {
-  uint64 code = 1;
-  string status = 2;
-}
+message Empty {}
 
 service ShopProduct {
-  rpc   CreateShop(CreateShopRequest) returns (StatusResponse) {}
-  rpc   EditShop(EditShopRequest) returns (StatusResponse) {}
+  rpc   CreateShop(CreateShopRequest) returns (CreateShopResponse) {}
+  rpc   EditShop(EditShopRequest) returns (Empty) {}
   rpc   GetShop(GetShopRequest) returns (Shop) {}
-  rpc   CreateProduct(CreateProductRequest) returns (StatusResponse) {}
-  rpc   EditProduct(EditProductRequest) returns (StatusResponse) {}
+  rpc   CreateProduct(CreateProductRequest) returns (CreateProductResponse) {}
+  rpc   EditProduct(EditProductRequest) returns (Empty) {}
   rpc   GetProduct(GetProductRequest) returns (Product) {}
 }

@@ -18,11 +18,11 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShopProductClient interface {
-	CreateShop(ctx context.Context, in *CreateShopRequest, opts ...grpc.CallOption) (*StatusResponse, error)
-	EditShop(ctx context.Context, in *EditShopRequest, opts ...grpc.CallOption) (*StatusResponse, error)
+	CreateShop(ctx context.Context, in *CreateShopRequest, opts ...grpc.CallOption) (*CreateShopResponse, error)
+	EditShop(ctx context.Context, in *EditShopRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetShop(ctx context.Context, in *GetShopRequest, opts ...grpc.CallOption) (*Shop, error)
-	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*StatusResponse, error)
-	EditProduct(ctx context.Context, in *EditProductRequest, opts ...grpc.CallOption) (*StatusResponse, error)
+	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error)
+	EditProduct(ctx context.Context, in *EditProductRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error)
 }
 
@@ -34,8 +34,8 @@ func NewShopProductClient(cc grpc.ClientConnInterface) ShopProductClient {
 	return &shopProductClient{cc}
 }
 
-func (c *shopProductClient) CreateShop(ctx context.Context, in *CreateShopRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
-	out := new(StatusResponse)
+func (c *shopProductClient) CreateShop(ctx context.Context, in *CreateShopRequest, opts ...grpc.CallOption) (*CreateShopResponse, error) {
+	out := new(CreateShopResponse)
 	err := c.cc.Invoke(ctx, "/shopProduct.ShopProduct/CreateShop", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -43,8 +43,8 @@ func (c *shopProductClient) CreateShop(ctx context.Context, in *CreateShopReques
 	return out, nil
 }
 
-func (c *shopProductClient) EditShop(ctx context.Context, in *EditShopRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
-	out := new(StatusResponse)
+func (c *shopProductClient) EditShop(ctx context.Context, in *EditShopRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/shopProduct.ShopProduct/EditShop", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -61,8 +61,8 @@ func (c *shopProductClient) GetShop(ctx context.Context, in *GetShopRequest, opt
 	return out, nil
 }
 
-func (c *shopProductClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
-	out := new(StatusResponse)
+func (c *shopProductClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error) {
+	out := new(CreateProductResponse)
 	err := c.cc.Invoke(ctx, "/shopProduct.ShopProduct/CreateProduct", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -70,8 +70,8 @@ func (c *shopProductClient) CreateProduct(ctx context.Context, in *CreateProduct
 	return out, nil
 }
 
-func (c *shopProductClient) EditProduct(ctx context.Context, in *EditProductRequest, opts ...grpc.CallOption) (*StatusResponse, error) {
-	out := new(StatusResponse)
+func (c *shopProductClient) EditProduct(ctx context.Context, in *EditProductRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, "/shopProduct.ShopProduct/EditProduct", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -92,11 +92,11 @@ func (c *shopProductClient) GetProduct(ctx context.Context, in *GetProductReques
 // All implementations must embed UnimplementedShopProductServer
 // for forward compatibility
 type ShopProductServer interface {
-	CreateShop(context.Context, *CreateShopRequest) (*StatusResponse, error)
-	EditShop(context.Context, *EditShopRequest) (*StatusResponse, error)
+	CreateShop(context.Context, *CreateShopRequest) (*CreateShopResponse, error)
+	EditShop(context.Context, *EditShopRequest) (*Empty, error)
 	GetShop(context.Context, *GetShopRequest) (*Shop, error)
-	CreateProduct(context.Context, *CreateProductRequest) (*StatusResponse, error)
-	EditProduct(context.Context, *EditProductRequest) (*StatusResponse, error)
+	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error)
+	EditProduct(context.Context, *EditProductRequest) (*Empty, error)
 	GetProduct(context.Context, *GetProductRequest) (*Product, error)
 	mustEmbedUnimplementedShopProductServer()
 }
@@ -105,19 +105,19 @@ type ShopProductServer interface {
 type UnimplementedShopProductServer struct {
 }
 
-func (UnimplementedShopProductServer) CreateShop(context.Context, *CreateShopRequest) (*StatusResponse, error) {
+func (UnimplementedShopProductServer) CreateShop(context.Context, *CreateShopRequest) (*CreateShopResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateShop not implemented")
 }
-func (UnimplementedShopProductServer) EditShop(context.Context, *EditShopRequest) (*StatusResponse, error) {
+func (UnimplementedShopProductServer) EditShop(context.Context, *EditShopRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditShop not implemented")
 }
 func (UnimplementedShopProductServer) GetShop(context.Context, *GetShopRequest) (*Shop, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetShop not implemented")
 }
-func (UnimplementedShopProductServer) CreateProduct(context.Context, *CreateProductRequest) (*StatusResponse, error) {
+func (UnimplementedShopProductServer) CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
 }
-func (UnimplementedShopProductServer) EditProduct(context.Context, *EditProductRequest) (*StatusResponse, error) {
+func (UnimplementedShopProductServer) EditProduct(context.Context, *EditProductRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditProduct not implemented")
 }
 func (UnimplementedShopProductServer) GetProduct(context.Context, *GetProductRequest) (*Product, error) {
