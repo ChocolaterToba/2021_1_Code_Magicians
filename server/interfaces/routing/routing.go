@@ -37,7 +37,7 @@ func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfac
 	r.HandleFunc("/api/auth/logout", mid.AuthMid(authFacade.LogoutUser, authClient)).Methods("POST")
 	r.HandleFunc("/api/auth/check", authFacade.CheckUser).Methods("GET")
 
-	// r.HandleFunc("/api/profile/password", mid.AuthMid(profileInfo.HandleChangePassword, authApp)).Methods("PUT")
+	r.HandleFunc("/api/auth/credentials/edit", mid.AuthMid(authFacade.ChangeCredentials, authClient)).Methods("PUT")
 	r.HandleFunc("/api/profile/edit", mid.AuthMid(profileFacade.EditUser, authClient)).Methods("PUT")
 	// r.HandleFunc("/api/profile/delete", mid.AuthMid(profileInfo.HandleDeleteProfile, authApp)).Methods("DELETE")
 	r.HandleFunc("/api/profile", mid.AuthMid(profileFacade.GetCurrentUser, authClient)).Methods("GET")

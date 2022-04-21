@@ -8,7 +8,7 @@ import (
 )
 
 // UserLoginInput is used when parsing JSON in auth/login handler
-type UserLoginInput struct {
+type UserCredentialsInput struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }

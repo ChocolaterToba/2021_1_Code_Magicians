@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	authclient "pinterest/clients/auth"
 	"pinterest/domain"
@@ -28,7 +29,7 @@ func NewAuthFacade(authClient authclient.AuthClientInterface, logger *zap.Logger
 
 // LoginUser logs user in using provided username and password
 func (facade *AuthFacade) LoginUser(w http.ResponseWriter, r *http.Request) {
-	userInput := new(domain.UserLoginInput)
+	userInput := new(domain.UserCredentialsInput)
 	err := json.NewDecoder(r.Body).Decode(userInput)
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
@@ -50,6 +51,8 @@ func (facade *AuthFacade) LoginUser(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	fmt.Println(cookieInfo.Cookie)
 
 	http.SetCookie(w, cookieInfo.Cookie)
 	w.WriteHeader(http.StatusNoContent)
@@ -79,6 +82,27 @@ func (facade *AuthFacade) CheckUser(w http.ResponseWriter, r *http.Request) {
 	_, found := middleware.CheckCookies(r, facade.authClient)
 	if !found {
 		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ChangeCredentials changes user's username and/or password
+func (facade *AuthFacade) ChangeCredentials(w http.ResponseWriter, r *http.Request) {
+	userInput := new(domain.UserCredentialsInput)
+	err := json.NewDecoder(r.Body).Decode(userInput)
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	userCookie := r.Context().Value(domain.CookieInfoKey).(*domain.CookieInfo)
+	err = facade.authClient.ChangeCredentials(context.Background(), userCookie.UserID, userInput.Username, userInput.Password)
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
