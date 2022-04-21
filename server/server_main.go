@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
 	authclient "pinterest/clients/auth"
 	userclient "pinterest/clients/user"
 	authfacade "pinterest/interfaces/auth"
@@ -16,6 +17,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 	"github.com/rs/cors"
 )
 
@@ -25,29 +27,9 @@ func runServer(addr string) {
 
 	sugarLogger := logger.Sugar()
 
-	err := godotenv.Load(".env")
+	err := loadSettings()
 	if err != nil {
-		sugarLogger.Fatal("Could not load .env file", zap.String("error", err.Error()))
-	}
-
-	err = godotenv.Load("passwords.env")
-	if err != nil {
-		sugarLogger.Fatal("Could not load passwords.env file", zap.String("error", err.Error()))
-	}
-
-	// err = godotenv.Load("s3.env")
-	// if err != nil {
-	// 	sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
-	// }
-
-	err = godotenv.Load("docker_vars.env")
-	if err != nil {
-		sugarLogger.Fatal("Could not load docker_vars.env file", zap.String("error", err.Error()))
-	}
-
-	err = godotenv.Load("vk_info.env")
-	if err != nil {
-		sugarLogger.Fatal("Could not load vk_info.env file", zap.String("error", err.Error()))
+		sugarLogger.Fatal(err.Error())
 	}
 
 	dockerStatus := os.Getenv("CONTAINER_PREFIX")
@@ -105,9 +87,40 @@ func runServer(addr string) {
 		sugarLogger.Fatal(http.ListenAndServeTLS(addr, "cert.pem", "key.pem", handler))
 	case "false":
 		sugarLogger.Fatal(http.ListenAndServe(addr, handler))
+	default:
+		sugarLogger.Fatal("SERVE_HTTPS_ON variable is not set")
 	}
 }
 
 func main() {
 	runServer(":8080")
+}
+
+func loadSettings() (err error) {
+	err = godotenv.Load(".env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load .env file")
+	}
+
+	err = godotenv.Load("passwords.env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load passwords.env file")
+	}
+
+	// err = godotenv.Load("s3.env")
+	// if err != nil {
+	// 	sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
+	// }
+
+	err = godotenv.Load("docker_vars.env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load docker_vars.env file")
+	}
+
+	err = godotenv.Load("vk_info.env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load vk_info.env file")
+	}
+
+	return nil
 }
