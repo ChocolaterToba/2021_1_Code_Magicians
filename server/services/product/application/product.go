@@ -74,7 +74,7 @@ func (app *ProductApp) EditProduct(ctx context.Context, product domain.Product) 
 }
 
 func (app *ProductApp) GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error) {
-	return app.repo.GetProductByID(ctx, product.Id)
+	return app.repo.GetProductByID(ctx, id)
 }
 
 func replaceStringIfNotEmpty(original string, replacement string) (result string) {

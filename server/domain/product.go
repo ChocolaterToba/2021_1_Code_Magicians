@@ -12,7 +12,7 @@ type Product struct {
 	Price        uint64 `json:"price"`
 	Availability bool   `json:"availability"`
 	// AssemblyTime is measured in minutes
-	AssemblyTime uint64   `json:"assembly_time`
+	AssemblyTime uint64   `json:"assembly_time"`
 	PartsAmount  uint64   `json:"parts_amount"`
 	Rating       float64  `json:"rating"`
 	Size         string   `json:"size"`
@@ -28,7 +28,7 @@ type ProductOutput struct {
 	Price        uint64 `json:"price"`
 	Availability bool   `json:"availability"`
 	// AssemblyTime is a "%d hours %d minutes" string here
-	AssemblyTime string   `json:"assembly_time`
+	AssemblyTime string   `json:"assembly_time"`
 	PartsAmount  uint64   `json:"parts_amount"`
 	Rating       float64  `json:"rating"`
 	Size         string   `json:"size"`

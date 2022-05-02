@@ -82,7 +82,7 @@ func (repo *ProductRepo) GetProductByID(ctx context.Context, id uint64) (product
 		&product.PartsAmount, &product.Rating, &product.Size, &product.Category, &product.ShopId)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return domain.Product{}, domain.ShopNotFoundError
+			return domain.Product{}, domain.ProductNotFoundError
 		}
 
 		return domain.Product{}, err
