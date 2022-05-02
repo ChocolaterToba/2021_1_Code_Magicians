@@ -14,16 +14,16 @@ type ProductClientInterface interface {
 	CreateShop(ctx context.Context, shop domain.Shop) (id uint64, err error)
 	EditShop(ctx context.Context, shop domain.Shop) (err error)
 	GetShopByID(ctx context.Context, id uint64) (shop domain.Shop, err error)
-	// CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
-	// EditProduct(ctx context.Context, product domain.Product) (err error)
-	// GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
+	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
+	EditProduct(ctx context.Context, product domain.Product) (err error)
+	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
 }
 
 type ProductClient struct {
-	productClient productproto.ProductClient
+	productClient productproto.ProductServiceClient
 }
 
-func NewProductClient(productClient productproto.ProductClient) *ProductClient {
+func NewProductClient(productClient productproto.ProductServiceClient) *ProductClient {
 	return &ProductClient{
 		productClient: productClient,
 	}
@@ -60,4 +60,37 @@ func (client *ProductClient) GetShopByID(ctx context.Context, id uint64) (shop d
 	}
 
 	return *domain.ToShop(pbShop), nil
+}
+
+func (client *ProductClient) CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error) {
+	pbProductID, err := client.productClient.CreateProduct(ctx, domain.ToPbCreateProductRequest(product))
+
+	if err != nil {
+		return 0, errors.Wrap(err, "product client error: ")
+	}
+
+	return pbProductID.Id, nil
+}
+
+func (client *ProductClient) EditProduct(ctx context.Context, product domain.Product) (err error) {
+	_, err = client.productClient.EditProduct(ctx, domain.ToPbEditProductRequest(product))
+
+	if err != nil {
+		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
+			return domain.ErrProductNotFound
+		}
+		return errors.Wrap(err, "product client error: ")
+	}
+
+	return nil
+}
+
+func (client *ProductClient) GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error) {
+	pbProduct, err := client.productClient.GetProductByID(ctx, &productproto.GetProductRequest{Id: id})
+
+	if err != nil {
+		return domain.Product{}, errors.Wrap(err, "product client error: ")
+	}
+
+	return *domain.ToProduct(pbProduct), nil
 }

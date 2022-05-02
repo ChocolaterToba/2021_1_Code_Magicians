@@ -63,7 +63,7 @@ func runServer(addr string) {
 
 	authClient := authclient.NewAuthClient(authproto.NewAuthClient(sessionAuth), os.Getenv("HTTPS_ON") == "true")
 	userClient := userclient.NewUserClient(userproto.NewUserClient(sessionUser))
-	productClient := productclient.NewProductClient(productproto.NewProductClient(sessionProduct))
+	productClient := productclient.NewProductClient(productproto.NewProductServiceClient(sessionProduct))
 
 	authFacade := authfacade.NewAuthFacade(authClient, logger)
 	profileFacade := profilefacade.NewProfileFacade(userClient, authClient, logger)

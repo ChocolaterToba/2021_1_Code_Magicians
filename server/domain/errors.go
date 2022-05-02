@@ -7,4 +7,5 @@ var (
 	ErrUserNotFound      = errors.New("User not found")
 	ErrCookieNotFound    = errors.New("Cookie not found")
 	ErrShopNotFound      = errors.New("Shop not found")
+	ErrProductNotFound   = errors.New("Product not found")
 )

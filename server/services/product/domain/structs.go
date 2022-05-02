@@ -16,7 +16,7 @@ type Product struct {
 	// AssemblyTime is measured in minutes
 	AssemblyTime uint64
 	PartsAmount  uint64
-	Rating       float32
+	Rating       float64
 	Size         string
 	Category     string
 	ImageLinks   []string

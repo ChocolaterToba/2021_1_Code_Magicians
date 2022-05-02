@@ -68,7 +68,7 @@ func runService(addr string) {
 	server := grpc.NewServer()
 
 	service := productfacade.NewProductFacade(productapp.NewProductApp(productrepo.NewProductRepo(postgresConn)))
-	productproto.RegisterProductServer(server, service)
+	productproto.RegisterProductServiceServer(server, service)
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {

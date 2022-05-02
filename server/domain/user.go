@@ -3,16 +3,16 @@ package domain
 import userpb "pinterest/services/user/proto"
 
 type User struct {
-	UserID    uint64 `json:"userID,omitempty"`
+	UserID    uint64 `json:"user_id,omitempty"`
 	Username  string `json:"username,omitempty"`
 	Password  string `json:"password,omitempty"`
-	FirstName string `json:"firstName,omitempty"`
-	LastName  string `json:"lastName,omitempty"`
+	FirstName string `json:"first_name,omitempty"`
+	LastName  string `json:"last_name,omitempty"`
 	Email     string `json:"email,omitempty"`
 }
 
 type UserIDResponse struct {
-	UserID uint64 `json:"userID"`
+	UserID uint64 `json:"user_id"`
 }
 
 func ToPbUserReg(user User) *userpb.UserReg {

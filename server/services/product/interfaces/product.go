@@ -70,7 +70,6 @@ func (facade *ProductFacade) CreateProduct(ctx context.Context, in *pb.CreatePro
 		Availability: in.Availability,
 		AssemblyTime: in.AssemblyTime,
 		PartsAmount:  in.PartsAmount,
-		Rating:       in.Rating,
 		Size:         in.Size,
 		Category:     in.Category,
 		ShopId:       in.ShopId,

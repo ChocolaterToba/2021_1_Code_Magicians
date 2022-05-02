@@ -44,7 +44,7 @@ message Product {
   bool availability = 5;
   uint64 assembly_time = 6;
   uint64 parts_amount = 7;
-  float rating = 8;
+  double rating = 8;
   string size = 9;
   string category = 10;
   repeated string image_links = 11;
@@ -58,10 +58,9 @@ message CreateProductRequest {
   bool availability = 4;
   uint64 assembly_time = 5;
   uint64 parts_amount = 6;
-  float rating = 7;
-  string size = 8;
-  string category = 9;
-  uint64 shop_id = 10;
+  string size = 7;
+  string category = 8;
+  uint64 shop_id = 9;
 }
 
 message CreateProductResponse {
