@@ -6,7 +6,9 @@ import (
 	"net/http"
 	productclient "pinterest/clients/product"
 	"pinterest/domain"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
 
@@ -52,4 +54,42 @@ func (facade *ProductFacade) CreateShop(w http.ResponseWriter, r *http.Request) 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(responseBody)
+}
+
+// Edit shop ...
+func (facade *ProductFacade) EditShop(w http.ResponseWriter, r *http.Request) {
+	shopInput := new(domain.Shop)
+	err := json.NewDecoder(r.Body).Decode(shopInput)
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	vars := mux.Vars(r)
+	shopIDstr, passedID := vars[string(domain.IDKey)]
+	if !passedID {
+		facade.logger.Info("Could not get id from query params",
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	shopInput.Id, _ = strconv.ParseUint(shopIDstr, 10, 64)
+
+	err = facade.productClient.EditShop(context.Background(), *shopInput)
+
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		switch err {
+		case domain.ErrShopNotFound:
+			w.WriteHeader(http.StatusNotFound)
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

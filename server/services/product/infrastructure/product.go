@@ -85,14 +85,21 @@ func (repo *ProductRepo) GetShopByID(ctx context.Context, id uint64) (shop domai
 						 FROM shops
 						 WHERE id = $1`
 
+	var managerIDs pq.Int64Array
+
 	row := tx.QueryRow(ctx, getShopByIDQuery, id)
-	err = row.Scan(&shop.Id, &shop.Title, &shop.Description, pq.Array(&shop.ManagerIDs))
+	err = row.Scan(&shop.Id, &shop.Title, &shop.Description, &managerIDs)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return domain.Shop{}, domain.ShopNotFoundError
 		}
 
 		return domain.Shop{}, err
+	}
+
+	shop.ManagerIDs = make([]uint64, 0, len(managerIDs))
+	for _, id := range managerIDs {
+		shop.ManagerIDs = append(shop.ManagerIDs, uint64(id))
 	}
 
 	err = tx.Commit(ctx)

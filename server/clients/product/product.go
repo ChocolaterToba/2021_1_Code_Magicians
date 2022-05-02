@@ -3,7 +3,9 @@ package product
 import (
 	"context"
 	"pinterest/domain"
+	productdomain "pinterest/services/product/domain"
 	productproto "pinterest/services/product/proto"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +43,9 @@ func (client *ProductClient) EditShop(ctx context.Context, shop domain.Shop) (er
 	_, err = client.productClient.EditShop(ctx, domain.ToPbEditShopRequest(shop))
 
 	if err != nil {
+		if strings.Contains(err.Error(), productdomain.ShopNotFoundError.Error()) {
+			return domain.ErrShopNotFound
+		}
 		return errors.Wrap(err, "product client error: ")
 	}
 
