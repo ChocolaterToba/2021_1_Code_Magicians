@@ -11,26 +11,27 @@ import (
 	"go.uber.org/zap"
 )
 
-// Create shop creates shop using provided data
-func (facade *ProductFacade) CreateShop(w http.ResponseWriter, r *http.Request) {
-	shopInput := new(domain.Shop)
-	err := json.NewDecoder(r.Body).Decode(shopInput)
+// Create product creates product using provided data
+func (facade *ProductFacade) CreateProduct(w http.ResponseWriter, r *http.Request) {
+	productInput := new(domain.Product)
+	err := json.NewDecoder(r.Body).Decode(productInput)
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	shopID, err := facade.productClient.CreateShop(context.Background(), *shopInput)
+	productID, err := facade.productClient.CreateProduct(context.Background(), *productInput)
 
 	if err != nil {
+		// TODO: check for "Shop not found" errors
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	shopIDOutput := domain.ShopIDResponse{ShopID: shopID}
-	responseBody, err := json.Marshal(shopIDOutput)
+	productIDOutput := domain.ProductIDResponse{ProductID: productID}
+	responseBody, err := json.Marshal(productIDOutput)
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -42,10 +43,10 @@ func (facade *ProductFacade) CreateShop(w http.ResponseWriter, r *http.Request) 
 	w.Write(responseBody)
 }
 
-// Edit shop ...
-func (facade *ProductFacade) EditShop(w http.ResponseWriter, r *http.Request) {
-	shopInput := new(domain.Shop)
-	err := json.NewDecoder(r.Body).Decode(shopInput)
+// Edit product ...
+func (facade *ProductFacade) EditProduct(w http.ResponseWriter, r *http.Request) {
+	productInput := new(domain.Product)
+	err := json.NewDecoder(r.Body).Decode(productInput)
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
 		w.WriteHeader(http.StatusBadRequest)
@@ -53,7 +54,7 @@ func (facade *ProductFacade) EditShop(w http.ResponseWriter, r *http.Request) {
 	}
 
 	vars := mux.Vars(r)
-	shopIDstr, passedID := vars[string(domain.IDKey)]
+	productIDstr, passedID := vars[string(domain.IDKey)]
 	if !passedID {
 		facade.logger.Info("Could not get id from query params",
 			zap.String("url", r.RequestURI),
@@ -62,14 +63,14 @@ func (facade *ProductFacade) EditShop(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shopInput.Id, _ = strconv.ParseUint(shopIDstr, 10, 64)
+	productInput.Id, _ = strconv.ParseUint(productIDstr, 10, 64)
 
-	err = facade.productClient.EditShop(context.Background(), *shopInput)
+	err = facade.productClient.EditProduct(context.Background(), *productInput)
 
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
 		switch err {
-		case domain.ErrShopNotFound:
+		case domain.ErrProductNotFound:
 			w.WriteHeader(http.StatusNotFound)
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
@@ -80,10 +81,10 @@ func (facade *ProductFacade) EditShop(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// Get shop ...
-func (facade *ProductFacade) GetShopByID(w http.ResponseWriter, r *http.Request) {
+// Get product ...
+func (facade *ProductFacade) GetProductByID(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	shopIDStr, passedID := vars[string(domain.IDKey)]
+	productIDStr, passedID := vars[string(domain.IDKey)]
 
 	if !passedID {
 		facade.logger.Info("Could not get id from query params",
@@ -93,13 +94,13 @@ func (facade *ProductFacade) GetShopByID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	shopID, _ := strconv.ParseUint(shopIDStr, 10, 64)
-	shop, err := facade.productClient.GetShopByID(context.Background(), shopID)
+	productID, _ := strconv.ParseUint(productIDStr, 10, 64)
+	product, err := facade.productClient.GetProductByID(context.Background(), productID)
 	if err != nil {
 		facade.logger.Info(err.Error(),
 			zap.String("url", r.RequestURI),
 			zap.String("method", r.Method))
-		if err == domain.ErrShopNotFound {
+		if err == domain.ErrProductNotFound {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -107,7 +108,8 @@ func (facade *ProductFacade) GetShopByID(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	responseBody, err := json.Marshal(shop)
+	productOutput := domain.ToProductOutput(product)
+	responseBody, err := json.Marshal(productOutput)
 	if err != nil {
 		facade.logger.Info(err.Error(),
 			zap.String("url", r.RequestURI),

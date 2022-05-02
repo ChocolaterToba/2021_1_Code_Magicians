@@ -24,6 +24,7 @@ func (repo *ProductRepo) CreateProduct(ctx context.Context, product domain.Produ
 		product.PartsAmount, product.Size, product.Category, product.ShopId)
 	err = row.Scan(&id)
 	if err != nil {
+		// TODO: check if shop exists?
 		return 0, err
 	}
 
