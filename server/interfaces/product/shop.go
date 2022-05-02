@@ -4,26 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	productclient "pinterest/clients/product"
 	"pinterest/domain"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
-
-// ProductFacade calls product app
-type ProductFacade struct {
-	productClient productclient.ProductClientInterface
-	logger        *zap.Logger
-}
-
-func NewProductFacade(productClient productclient.ProductClientInterface, logger *zap.Logger) *ProductFacade {
-	return &ProductFacade{
-		productClient: productClient,
-		logger:        logger,
-	}
-}
 
 // Create shop creates shop using provided data
 func (facade *ProductFacade) CreateShop(w http.ResponseWriter, r *http.Request) {

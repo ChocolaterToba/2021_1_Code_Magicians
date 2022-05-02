@@ -5,36 +5,23 @@ import (
 	"pinterest/services/product/domain"
 
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/lib/pq"
 )
 
-type ProductRepoInterface interface {
-	CreateShop(ctx context.Context, shop domain.Shop) (id uint64, err error)
-	UpdateShop(ctx context.Context, shop domain.Shop) (err error)
-	GetShopByID(ctx context.Context, id uint64) (shop domain.Shop, err error)
-}
-
-type ProductRepo struct {
-	postgresDB *pgxpool.Pool
-}
-
-func NewProductRepo(postgresDB *pgxpool.Pool) *ProductRepo {
-	return &ProductRepo{postgresDB: postgresDB}
-}
-
-func (repo *ProductRepo) CreateShop(ctx context.Context, shop domain.Shop) (id uint64, err error) {
+func (repo *ProductRepo) CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error) {
 	tx, err := repo.postgresDB.Begin(ctx)
 	if err != nil {
 		return 0, domain.TransactionBeginError
 	}
 	defer tx.Rollback(ctx)
 
-	createShopQuery := `INSERT INTO shops (title, description, manager_ids)
-						VALUES ($1, $2, $3)
-						RETURNING id`
+	createProductQuery := `INSERT INTO products (title, description, price, availability, 
+						   assembly_time, parts_amount, size, category, shop_id)
+						   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+						   RETURNING id`
 
-	row := tx.QueryRow(ctx, createShopQuery, shop.Title, shop.Description, pq.Array(shop.ManagerIDs))
+	row := tx.QueryRow(ctx, createProductQuery,
+		product.Title, product.Description, product.Price, product.Availability, product.AssemblyTime,
+		product.PartsAmount, product.Size, product.Category, product.ShopId)
 	err = row.Scan(&id)
 	if err != nil {
 		return 0, err
@@ -47,24 +34,27 @@ func (repo *ProductRepo) CreateShop(ctx context.Context, shop domain.Shop) (id u
 	return id, nil
 }
 
-func (repo *ProductRepo) UpdateShop(ctx context.Context, shop domain.Shop) (err error) {
+func (repo *ProductRepo) UpdateProduct(ctx context.Context, product domain.Product) (err error) {
 	tx, err := repo.postgresDB.Begin(ctx)
 	if err != nil {
 		return domain.TransactionBeginError
 	}
 	defer tx.Rollback(ctx)
 
-	updateShopQuery := `UPDATE shops
-						SET title = $2, description = $3, manager_ids = $4
-						WHERE id = $1`
+	updateProductQuery := `UPDATE products
+						   SET title = $2, description = $3, price = $4, availability =$5, 
+						   assembly_time = $6, parts_amount = $7, size = $8, category = $9, shop_id = $10
+						   WHERE id = $1`
 
-	result, err := tx.Exec(ctx, updateShopQuery, shop.Id, shop.Title, shop.Description, pq.Array(shop.ManagerIDs))
+	result, err := tx.Exec(ctx, updateProductQuery,
+		product.Id, product.Title, product.Description, product.Price, product.Availability,
+		product.AssemblyTime, product.PartsAmount, product.Size, product.Category, product.ShopId)
 	if err != nil {
 		return err
 	}
 
 	if result.RowsAffected() != 1 {
-		return domain.ShopNotFoundError
+		return domain.ProductNotFoundError
 	}
 
 	err = tx.Commit(ctx)
@@ -74,37 +64,32 @@ func (repo *ProductRepo) UpdateShop(ctx context.Context, shop domain.Shop) (err 
 	return nil
 }
 
-func (repo *ProductRepo) GetShopByID(ctx context.Context, id uint64) (shop domain.Shop, err error) {
+func (repo *ProductRepo) GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error) {
 	tx, err := repo.postgresDB.Begin(ctx)
 	if err != nil {
-		return domain.Shop{}, domain.TransactionBeginError
+		return domain.Product{}, domain.TransactionBeginError
 	}
 	defer tx.Rollback(ctx)
 
-	getShopByIDQuery := `SELECT id, title, description, manager_ids
-						 FROM shops
-						 WHERE id = $1`
+	getProductByIDQuery := `SELECT id, title, description, price, availability, assembly_time, 
+							parts_amount, rating, size, category, shop_id
+							FROM products
+							WHERE id = $1`
 
-	var managerIDs pq.Int64Array
-
-	row := tx.QueryRow(ctx, getShopByIDQuery, id)
-	err = row.Scan(&shop.Id, &shop.Title, &shop.Description, &managerIDs)
+	row := tx.QueryRow(ctx, getProductByIDQuery, id)
+	err = row.Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.Availability, &product.AssemblyTime,
+		&product.PartsAmount, &product.Rating, &product.Size, &product.Category, &product.ShopId)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return domain.Shop{}, domain.ShopNotFoundError
+			return domain.Product{}, domain.ShopNotFoundError
 		}
 
-		return domain.Shop{}, err
-	}
-
-	shop.ManagerIDs = make([]uint64, 0, len(managerIDs))
-	for _, id := range managerIDs {
-		shop.ManagerIDs = append(shop.ManagerIDs, uint64(id))
+		return domain.Product{}, err
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		return domain.Shop{}, domain.TransactionCommitError
+		return domain.Product{}, domain.TransactionCommitError
 	}
-	return shop, nil
+	return product, nil
 }

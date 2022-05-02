@@ -11,7 +11,7 @@ import (
 )
 
 type ProductFacade struct {
-	pb.UnimplementedProductServer
+	pb.UnimplementedProductServiceServer
 	app application.ProductAppInterface
 }
 
@@ -93,7 +93,6 @@ func (facade *ProductFacade) EditProduct(ctx context.Context, in *pb.EditProduct
 		Availability: in.Availability,
 		AssemblyTime: in.AssemblyTime,
 		PartsAmount:  in.PartsAmount,
-		Rating:       in.Rating,
 		Size:         in.Size,
 		Category:     in.Category,
 		ShopId:       in.ShopId,

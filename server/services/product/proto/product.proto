@@ -76,10 +76,9 @@ message EditProductRequest {
   bool availability = 5;
   uint64 assembly_time = 6;
   uint64 parts_amount = 7;
-  float rating = 8;
-  string size = 9;
-  string category = 10;
-  uint64 shop_id = 11;
+  string size = 8;
+  string category = 9;
+  uint64 shop_id = 10;
 }
 
 message GetProductRequest {
@@ -88,7 +87,7 @@ message GetProductRequest {
 
 message Empty {}
 
-service Product {
+service ProductService {
   rpc   CreateShop(CreateShopRequest) returns (CreateShopResponse) {}
   rpc   EditShop(EditShopRequest) returns (Empty) {}
   rpc   GetShopByID(GetShopRequest) returns (Shop) {}
