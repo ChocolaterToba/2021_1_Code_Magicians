@@ -93,3 +93,45 @@ func (facade *ProductFacade) EditShop(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// Get shop ...
+func (facade *ProductFacade) GetShopByID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	shopIDStr, passedID := vars[string(domain.IDKey)]
+
+	if !passedID {
+		facade.logger.Info("Could not get id from query params",
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	shopID, _ := strconv.ParseUint(shopIDStr, 10, 64)
+	shop, err := facade.productClient.GetShopByID(context.Background(), shopID)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		if err == domain.ErrShopNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	responseBody, err := json.Marshal(shop)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseBody)
+	return
+}

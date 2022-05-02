@@ -50,7 +50,8 @@ func CreateRouter(authClient authclient.AuthClientInterface,
 	// r.HandleFunc("/api/profiles/search/{searchKey}", profileInfo.HandleGetProfilesByKeyWords).Methods("GET")
 
 	r.HandleFunc("/api/shop", mid.AuthMid(productFacade.CreateShop, authClient)).Methods("POST")
-	r.HandleFunc("/api/shop/edit/{id:[0-9]+}", mid.AuthMid(productFacade.EditShop, authClient)).Methods("PUT")
+	r.HandleFunc("/api/shop/{id:[0-9]+}", mid.AuthMid(productFacade.EditShop, authClient)).Methods("PUT")
+	r.HandleFunc("/api/shop/{id:[0-9]+}", productFacade.GetShopByID).Methods("GET")
 
 	if csrfOn {
 		r.HandleFunc("/api/csrf", func(w http.ResponseWriter, r *http.Request) { // Is used only for getting csrf key
