@@ -6,10 +6,10 @@ import (
 	"log"
 	"net"
 	"os"
-	userapp "pinterest/services/user/application"
-	userrepo "pinterest/services/user/infrastructure"
-	userfacade "pinterest/services/user/interfaces"
-	userproto "pinterest/services/user/proto"
+	productapp "pinterest/services/product/application"
+	productrepo "pinterest/services/product/infrastructure"
+	productfacade "pinterest/services/product/interfaces"
+	productproto "pinterest/services/product/proto"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
@@ -67,21 +67,21 @@ func runService(addr string) {
 
 	server := grpc.NewServer()
 
-	service := userfacade.NewUserFacade(userapp.NewUserApp(userrepo.NewUserRepo(postgresConn)))
-	userproto.RegisterUserServer(server, service)
+	service := productfacade.NewProductFacade(productapp.NewProductApp(productrepo.NewProductRepo(postgresConn)))
+	productproto.RegisterProductServer(server, service)
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalln("Listen user error: ", err)
+		log.Fatalln("Listen product error: ", err)
 	}
 
 	fmt.Printf("Starting server at localhost%s\n", addr)
 	err = server.Serve(lis)
 	if err != nil {
-		log.Fatalln("Serve user error: ", err)
+		log.Fatalln("Serve product error: ", err)
 	}
 }
 
 func main() {
-	runService(":8082")
+	runService(":8083")
 }

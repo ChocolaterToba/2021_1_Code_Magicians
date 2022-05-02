@@ -7,6 +7,7 @@ import (
 	authfacade "pinterest/interfaces/auth"
 	"pinterest/interfaces/metrics"
 	mid "pinterest/interfaces/middleware"
+	productfacade "pinterest/interfaces/product"
 	profilefacade "pinterest/interfaces/profile"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -15,7 +16,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfacade.AuthFacade, profileFacade *profilefacade.ProfileFacade, csrfOn bool) *mux.Router {
+func CreateRouter(authClient authclient.AuthClientInterface,
+	authFacade *authfacade.AuthFacade, profileFacade *profilefacade.ProfileFacade, productFacade *productfacade.ProductFacade,
+	csrfOn bool) *mux.Router {
 	r := mux.NewRouter()
 
 	r.Use(mid.PanicMid, metrics.PrometheusMiddleware)
@@ -45,6 +48,8 @@ func CreateRouter(authClient authclient.AuthClientInterface, authFacade *authfac
 	r.HandleFunc("/api/profile/{username}", profileFacade.GetUserByUsername).Methods("GET")
 	// r.HandleFunc("/api/profile/avatar", mid.AuthMid(profileInfo.HandlePostAvatar, authApp)).Methods("PUT")
 	// r.HandleFunc("/api/profiles/search/{searchKey}", profileInfo.HandleGetProfilesByKeyWords).Methods("GET")
+
+	r.HandleFunc("/api/shop", mid.AuthMid(productFacade.CreateShop, authClient)).Methods("POST")
 
 	if csrfOn {
 		r.HandleFunc("/api/csrf", func(w http.ResponseWriter, r *http.Request) { // Is used only for getting csrf key

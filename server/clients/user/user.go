@@ -28,8 +28,7 @@ func NewUserClient(userClient userproto.UserClient) *UserClient {
 	}
 }
 func (client *UserClient) CreateUser(ctx context.Context, user domain.User) (userID uint64, err error) {
-	pbUserID, err := client.userClient.CreateUser(context.Background(),
-		domain.ToPbUserReg(user))
+	pbUserID, err := client.userClient.CreateUser(ctx, domain.ToPbUserReg(user))
 
 	if err != nil {
 		return 0, errors.Wrap(err, "user client error: ")
@@ -39,8 +38,7 @@ func (client *UserClient) CreateUser(ctx context.Context, user domain.User) (use
 }
 
 func (client *UserClient) EditUser(ctx context.Context, user domain.User) (err error) {
-	_, err = client.userClient.EditUser(context.Background(),
-		domain.ToPbUserEdit(user))
+	_, err = client.userClient.EditUser(ctx, domain.ToPbUserEdit(user))
 
 	if err != nil {
 		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
@@ -53,8 +51,7 @@ func (client *UserClient) EditUser(ctx context.Context, user domain.User) (err e
 }
 
 func (client *UserClient) GetUserByID(ctx context.Context, userID uint64) (user domain.User, err error) {
-	pbUser, err := client.userClient.GetUserByID(context.Background(),
-		&userproto.UserID{Uid: userID})
+	pbUser, err := client.userClient.GetUserByID(ctx, &userproto.UserID{Uid: userID})
 
 	if err != nil {
 		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
@@ -67,8 +64,7 @@ func (client *UserClient) GetUserByID(ctx context.Context, userID uint64) (user 
 }
 
 func (client *UserClient) GetUserByUsername(ctx context.Context, username string) (user domain.User, err error) {
-	pbUser, err := client.userClient.GetUserByUsername(context.Background(),
-		&userproto.Username{Username: username})
+	pbUser, err := client.userClient.GetUserByUsername(ctx, &userproto.Username{Username: username})
 
 	if err != nil {
 		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
@@ -81,7 +77,7 @@ func (client *UserClient) GetUserByUsername(ctx context.Context, username string
 }
 
 func (client *UserClient) GetUsers(ctx context.Context) (users []domain.User, err error) {
-	pbUsers, err := client.userClient.GetUsers(context.Background(), &userproto.Empty{})
+	pbUsers, err := client.userClient.GetUsers(ctx, &userproto.Empty{})
 
 	if err != nil {
 		return nil, errors.Wrap(err, "user client error: ")

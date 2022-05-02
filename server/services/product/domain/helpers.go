@@ -1,7 +1,7 @@
 package domain
 
 import (
-	pb "pinterest/services/shopProduct/proto"
+	pb "pinterest/services/product/proto"
 )
 
 func ToShop(pbShop *pb.Shop) Shop {

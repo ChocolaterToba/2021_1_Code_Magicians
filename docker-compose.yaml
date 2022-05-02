@@ -8,15 +8,36 @@ services:
     depends_on:
       - postgres
       - auth-service
+      - user-service
+      - product-service
     command: ["./wait-for-it.sh", "postgres:5432", "--", "go", "run", "server_main.go"]
 
   auth-service:
     build: server
-    ports:
-      - 8081:8081
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8081:8081
     depends_on:
       - postgres
     command: ["./wait-for-it.sh", "postgres:5432", "--", "go", "run", "./cmd/auth/"]
+  
+  user-service:
+    build: server
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8082:8082
+    depends_on:
+      - postgres
+    command: ["go", "run", "./cmd/user/"]
+  
+  product-service:
+    build: server
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8083:8083
+    depends_on:
+      - postgres
+    command: ["go", "run", "./cmd/product"]
   
   postgres:
     build: postgres

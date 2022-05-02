@@ -2,28 +2,26 @@ package facade
 
 import (
 	"context"
-	"pinterest/services/shopProduct/application"
-	"pinterest/services/shopProduct/domain"
-	pb "pinterest/services/shopProduct/proto"
+	"pinterest/services/product/application"
+	"pinterest/services/product/domain"
+	pb "pinterest/services/product/proto"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/pkg/errors"
 	_ "google.golang.org/grpc"
 )
 
-type ShopProductFacade struct {
-	postgresDB *pgxpool.Pool
-	app        application.ShopProductAppInterface
+type ProductFacade struct {
+	pb.UnimplementedProductServer
+	app application.ProductAppInterface
 }
 
-func NewService(postgresDB *pgxpool.Pool, app application.ShopProductAppInterface) *ShopProductFacade {
-	return &ShopProductFacade{
-		postgresDB: postgresDB,
-		app:        app,
+func NewProductFacade(app application.ProductAppInterface) *ProductFacade {
+	return &ProductFacade{
+		app: app,
 	}
 }
 
-func (facade *ShopProductFacade) CreateShop(ctx context.Context, in *pb.CreateShopRequest) (*pb.CreateShopResponse, error) {
+func (facade *ProductFacade) CreateShop(ctx context.Context, in *pb.CreateShopRequest) (*pb.CreateShopResponse, error) {
 	shopInput := domain.Shop{
 		Title:       in.Title,
 		Description: in.Description,
@@ -38,7 +36,7 @@ func (facade *ShopProductFacade) CreateShop(ctx context.Context, in *pb.CreateSh
 	return &pb.CreateShopResponse{Id: shopID}, nil
 }
 
-func (facade *ShopProductFacade) EditShop(ctx context.Context, in *pb.EditShopRequest) (*pb.Empty, error) {
+func (facade *ProductFacade) EditShop(ctx context.Context, in *pb.EditShopRequest) (*pb.Empty, error) {
 	shopInput := domain.Shop{
 		Id:          in.Id,
 		Title:       in.Title,
@@ -54,8 +52,8 @@ func (facade *ShopProductFacade) EditShop(ctx context.Context, in *pb.EditShopRe
 	return &pb.Empty{}, nil
 }
 
-func (facade *ShopProductFacade) GetShop(ctx context.Context, in *pb.GetShopRequest) (*pb.Shop, error) {
-	shop, err := facade.app.GetShop(ctx, in.GetId())
+func (facade *ProductFacade) GetShopByID(ctx context.Context, in *pb.GetShopRequest) (*pb.Shop, error) {
+	shop, err := facade.app.GetShopByID(ctx, in.GetId())
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get shop:")
 	}
@@ -63,7 +61,7 @@ func (facade *ShopProductFacade) GetShop(ctx context.Context, in *pb.GetShopRequ
 	return domain.ToPbShop(shop), nil
 }
 
-func (facade *ShopProductFacade) CreateProduct(ctx context.Context, in *pb.CreateProductRequest) (*pb.CreateProductResponse, error) {
+func (facade *ProductFacade) CreateProduct(ctx context.Context, in *pb.CreateProductRequest) (*pb.CreateProductResponse, error) {
 	productInput := domain.Product{
 		Id:           0,
 		Title:        in.Title,
@@ -86,7 +84,7 @@ func (facade *ShopProductFacade) CreateProduct(ctx context.Context, in *pb.Creat
 	return &pb.CreateProductResponse{Id: productID}, nil
 }
 
-func (facade *ShopProductFacade) EditProduct(ctx context.Context, in *pb.EditProductRequest) (*pb.Empty, error) {
+func (facade *ProductFacade) EditProduct(ctx context.Context, in *pb.EditProductRequest) (*pb.Empty, error) {
 	productInput := domain.Product{
 		Id:           in.Id,
 		Title:        in.Title,
@@ -108,8 +106,8 @@ func (facade *ShopProductFacade) EditProduct(ctx context.Context, in *pb.EditPro
 
 	return &pb.Empty{}, nil
 }
-func (facade *ShopProductFacade) GetProduct(ctx context.Context, in *pb.GetProductRequest) (*pb.Product, error) {
-	product, err := facade.app.GetProduct(ctx, in.GetId())
+func (facade *ProductFacade) GetProductByID(ctx context.Context, in *pb.GetProductRequest) (*pb.Product, error) {
+	product, err := facade.app.GetProductByID(ctx, in.GetId())
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get product:")
 	}

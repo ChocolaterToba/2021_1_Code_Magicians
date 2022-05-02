@@ -8,6 +8,7 @@ services:
     depends_on:
       - auth-service
       - user-service
+      - product-service
     command: ["go", "run", "server_main.go"]
   
   auth-service:
@@ -23,3 +24,10 @@ services:
     # ports:
     #   - 8082:8082
     command: ["go", "run", "./cmd/user/"]
+  
+  product-service:
+    build: server
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8083:8083
+    command: ["go", "run", "./cmd/product"]

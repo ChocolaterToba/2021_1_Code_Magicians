@@ -32,7 +32,7 @@ func NewAuthClient(authClient authproto.AuthClient, httpsOn bool) *AuthClient {
 }
 
 func (client *AuthClient) LoginUser(ctx context.Context, username string, password string) (cookie *domain.CookieInfo, err error) {
-	pbCookie, err := client.authClient.LoginUser(context.Background(),
+	pbCookie, err := client.authClient.LoginUser(ctx,
 		&authproto.UserAuth{Username: username, Password: password})
 
 	if err != nil {
@@ -51,7 +51,7 @@ func (client *AuthClient) LoginUser(ctx context.Context, username string, passwo
 }
 
 func (client *AuthClient) SearchCookieByValue(ctx context.Context, cookieValue string) (cookie *domain.CookieInfo, err error) {
-	pbCookie, err := client.authClient.SearchCookieByValue(context.Background(),
+	pbCookie, err := client.authClient.SearchCookieByValue(ctx,
 		&authproto.CookieValue{CookieValue: cookieValue})
 
 	if err != nil {
@@ -66,7 +66,7 @@ func (client *AuthClient) SearchCookieByValue(ctx context.Context, cookieValue s
 }
 
 func (client *AuthClient) SearchCookieByUserID(ctx context.Context, userID uint64) (cookie *domain.CookieInfo, err error) {
-	pbCookie, err := client.authClient.SearchCookieByUserID(context.Background(),
+	pbCookie, err := client.authClient.SearchCookieByUserID(ctx,
 		&authproto.UserID{Uid: userID})
 
 	if err != nil {
@@ -81,8 +81,7 @@ func (client *AuthClient) SearchCookieByUserID(ctx context.Context, userID uint6
 }
 
 func (client *AuthClient) LogoutUser(ctx context.Context, cookieValue string) error {
-	_, err := client.authClient.LogoutUser(context.Background(),
-		&authproto.CookieValue{CookieValue: cookieValue})
+	_, err := client.authClient.LogoutUser(ctx, &authproto.CookieValue{CookieValue: cookieValue})
 
 	if err != nil {
 		if strings.Contains(err.Error(), authdomain.CookieNotFoundError.Error()) {
@@ -95,7 +94,7 @@ func (client *AuthClient) LogoutUser(ctx context.Context, cookieValue string) er
 }
 
 func (client *AuthClient) ChangeCredentials(ctx context.Context, userID uint64, username, password string) (err error) {
-	_, err = client.authClient.ChangeCredentials(context.Background(),
+	_, err = client.authClient.ChangeCredentials(ctx,
 		&authproto.Credentials{
 			UserID:   userID,
 			Username: username,

@@ -6,11 +6,14 @@ import (
 	"os"
 
 	authclient "pinterest/clients/auth"
+	productclient "pinterest/clients/product"
 	userclient "pinterest/clients/user"
 	authfacade "pinterest/interfaces/auth"
+	productfacade "pinterest/interfaces/product"
 	profilefacade "pinterest/interfaces/profile"
 	"pinterest/interfaces/routing"
 	authproto "pinterest/services/auth/proto"
+	productproto "pinterest/services/product/proto"
 	userproto "pinterest/services/user/proto"
 
 	"go.uber.org/zap"
@@ -50,16 +53,23 @@ func runServer(addr string) {
 	if err != nil {
 		sugarLogger.Fatal("Can not create session for User service")
 	}
-	defer sessionAuth.Close()
+	defer sessionUser.Close()
+
+	sessionProduct, err := grpc.Dial(os.Getenv(dockerStatus+"_PRODUCT_PREFIX")+":8083", grpc.WithInsecure())
+	if err != nil {
+		sugarLogger.Fatal("Can not create session for Product service")
+	}
+	defer sessionProduct.Close()
 
 	authClient := authclient.NewAuthClient(authproto.NewAuthClient(sessionAuth), os.Getenv("HTTPS_ON") == "true")
 	userClient := userclient.NewUserClient(userproto.NewUserClient(sessionUser))
+	productClient := productclient.NewProductClient(productproto.NewProductClient(sessionProduct))
 
 	authFacade := authfacade.NewAuthFacade(authClient, logger)
-	profilefacade := profilefacade.NewProfileFacade(userClient, authClient, logger)
-	// TODO divide file
+	profileFacade := profilefacade.NewProfileFacade(userClient, authClient, logger)
+	productFacade := productfacade.NewProductFacade(productClient, logger)
 
-	r := routing.CreateRouter(authClient, authFacade, profilefacade, os.Getenv("CSRF_ON") == "true")
+	r := routing.CreateRouter(authClient, authFacade, profileFacade, productFacade, os.Getenv("CSRF_ON") == "true")
 
 	allowedOrigins := make([]string, 0)
 	switch os.Getenv("HTTPS_ON") {
