@@ -13,7 +13,7 @@ type ProductAppInterface interface {
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	EditProduct(ctx context.Context, product domain.Product) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
-	GetProducts(ctx context.Context, offset uint64, pageSize uint64) (products []domain.Product, err error)
+	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64) (products []domain.Product, err error)
 }
 
 type ProductApp struct {
@@ -78,12 +78,12 @@ func (app *ProductApp) GetProductByID(ctx context.Context, id uint64) (product d
 	return app.repo.GetProductByID(ctx, id)
 }
 
-func (app *ProductApp) GetProducts(ctx context.Context, offset uint64, pageSize uint64) (products []domain.Product, err error) {
+func (app *ProductApp) GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64) (products []domain.Product, err error) {
 	if pageSize == 0 {
 		pageSize = domain.DefaultPageSize
 	}
 
-	return app.repo.GetProducts(ctx, offset, pageSize)
+	return app.repo.GetProducts(ctx, pageOffset, pageSize)
 }
 
 func replaceStringIfNotEmpty(original string, replacement string) (result string) {

@@ -124,14 +124,14 @@ func (facade *ProductFacade) GetProductByID(w http.ResponseWriter, r *http.Reque
 	return
 }
 
-// Get Products returns product with offset ond limit specified in request
+// Get Products returns product with page offset and size specified in request
 func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 
-	offsetString := queryParams.Get(string(domain.OffsetKey))
-	offset, err := strconv.ParseUint(offsetString, 10, 64)
+	pageOffsetString := queryParams.Get(string(domain.PageOffsetKey))
+	pageOffset, err := strconv.ParseUint(pageOffsetString, 10, 64)
 	if err != nil {
-		facade.logger.Info("Could not get offset from query params",
+		facade.logger.Info("Could not get page offset from query params",
 			zap.String("url", r.RequestURI),
 			zap.String("method", r.Method))
 		w.WriteHeader(http.StatusBadRequest)
@@ -148,7 +148,7 @@ func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	products, err := facade.productClient.GetProducts(context.Background(), offset, pageSize)
+	products, err := facade.productClient.GetProducts(context.Background(), pageOffset, pageSize)
 	if err != nil {
 		facade.logger.Info(err.Error(),
 			zap.String("url", r.RequestURI),

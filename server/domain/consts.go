@@ -6,6 +6,6 @@ const (
 	CookieInfoKey Key = "cookie"
 	IDKey         Key = "id"
 	UsernameKey   Key = "username"
-	OffsetKey     Key = "offset"
+	PageOffsetKey Key = "pageOffset"
 	PageSizeKey   Key = "pageSize"
 )
