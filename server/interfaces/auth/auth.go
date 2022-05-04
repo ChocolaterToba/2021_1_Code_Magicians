@@ -60,7 +60,7 @@ func (facade *AuthFacade) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 // LogoutUser logs current user out of their session
 func (facade *AuthFacade) LogoutUser(w http.ResponseWriter, r *http.Request) {
-	userCookie := r.Context().Value(domain.CookieInfoKey).(*domain.CookieInfo)
+	userCookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
 
 	err := facade.authClient.LogoutUser(context.Background(), userCookie.Cookie.Value)
 	if err != nil {
@@ -98,7 +98,7 @@ func (facade *AuthFacade) ChangeCredentials(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	userCookie := r.Context().Value(domain.CookieInfoKey).(*domain.CookieInfo)
+	userCookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
 	err = facade.authClient.ChangeCredentials(context.Background(), userCookie.UserID, userInput.Username, userInput.Password)
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))

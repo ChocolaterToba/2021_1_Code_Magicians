@@ -85,7 +85,7 @@ func (facade *ProfileFacade) EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userCookie := r.Context().Value(domain.CookieInfoKey).(*domain.CookieInfo)
+	userCookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
 	userInput.UserID = userCookie.UserID
 	userInput.Username = ""
 	userInput.Password = ""
@@ -195,7 +195,7 @@ func (facade *ProfileFacade) GetUserByUsername(w http.ResponseWriter, r *http.Re
 
 // GetCurrentUser recieves current user data from user service. Sensitive data is preserved in return values
 func (facade *ProfileFacade) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
-	cookie := r.Context().Value(domain.CookieInfoKey).(*domain.CookieInfo)
+	cookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
 
 	user, err := facade.userClient.GetUserByID(context.Background(), cookie.UserID)
 	if err != nil {

@@ -54,8 +54,8 @@ func ToProductOutput(product Product) (output ProductOutput) {
 	}
 }
 
-func ToProduct(pbProduct *productpb.Product) *Product {
-	return &Product{
+func ToProduct(pbProduct *productpb.Product) Product {
+	return Product{
 		Id:           pbProduct.Id,
 		Title:        pbProduct.Title,
 		Description:  pbProduct.Description,
@@ -69,6 +69,16 @@ func ToProduct(pbProduct *productpb.Product) *Product {
 		ImageLinks:   pbProduct.ImageLinks,
 		ShopId:       pbProduct.ShopId,
 	}
+}
+
+func ToProducts(pbProducts []*productpb.Product) []Product {
+	result := make([]Product, 0, len(pbProducts))
+
+	for _, pbProduct := range pbProducts {
+		result = append(result, ToProduct(pbProduct))
+	}
+
+	return result
 }
 
 func ToPbCreateProductRequest(product Product) *productpb.CreateProductRequest {

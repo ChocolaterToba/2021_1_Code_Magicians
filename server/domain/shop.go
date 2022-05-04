@@ -11,8 +11,8 @@ type Shop struct {
 	ManagerIDs  []uint64 `json:"manager_ids"`
 }
 
-func ToShop(pbShop *productpb.Shop) *Shop {
-	return &Shop{
+func ToShop(pbShop *productpb.Shop) Shop {
+	return Shop{
 		Id:          pbShop.Id,
 		Title:       pbShop.Title,
 		Description: pbShop.Description,

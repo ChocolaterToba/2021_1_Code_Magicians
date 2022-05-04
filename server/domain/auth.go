@@ -13,8 +13,8 @@ type UserCredentialsInput struct {
 	Password string `json:"password"`
 }
 
-func ToCookieInfo(pbCookieInfo *authpb.CookieInfo, secure bool, httpOnly bool, sameSite http.SameSite) *CookieInfo {
-	return &CookieInfo{
+func ToCookieInfo(pbCookieInfo *authpb.CookieInfo, secure bool, httpOnly bool, sameSite http.SameSite) CookieInfo {
+	return CookieInfo{
 		UserID: pbCookieInfo.GetUserID(),
 		Cookie: ToCookie(pbCookieInfo.GetCookie(), secure, httpOnly, sameSite),
 	}

@@ -1,7 +1,9 @@
 package domain
 
+type Key string
+
 const (
-	CookieInfoKey = "cookie"
-	IDKey         = "id"
-	UsernameKey   = "username"
+	CookieInfoKey Key = "cookie"
+	IDKey         Key = "id"
+	UsernameKey   Key = "username"
 )

@@ -17,6 +17,7 @@ type ProductClientInterface interface {
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	EditProduct(ctx context.Context, product domain.Product) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
+	GetProducts(ctx context.Context, offset uint64, pageSize uint64) (products []domain.Product, err error)
 }
 
 type ProductClient struct {
@@ -59,7 +60,7 @@ func (client *ProductClient) GetShopByID(ctx context.Context, id uint64) (shop d
 		return domain.Shop{}, errors.Wrap(err, "product client error: ")
 	}
 
-	return *domain.ToShop(pbShop), nil
+	return domain.ToShop(pbShop), nil
 }
 
 func (client *ProductClient) CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error) {
@@ -92,5 +93,19 @@ func (client *ProductClient) GetProductByID(ctx context.Context, id uint64) (pro
 		return domain.Product{}, errors.Wrap(err, "product client error: ")
 	}
 
-	return *domain.ToProduct(pbProduct), nil
+	return domain.ToProduct(pbProduct), nil
+}
+
+func (client *ProductClient) GetProducts(ctx context.Context, offset uint64, pageSize uint64) (products []domain.Product, err error) {
+	pbProducts, err := client.productClient.GetProducts(ctx,
+		&productproto.GetProductsRequest{
+			Offset:   offset,
+			PageSize: pageSize,
+		})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "product client error: ")
+	}
+
+	return domain.ToProducts(pbProducts.Products), nil
 }

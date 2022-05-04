@@ -60,7 +60,7 @@ func (client *UserClient) GetUserByID(ctx context.Context, userID uint64) (user 
 		return domain.User{}, errors.Wrap(err, "user client error: ")
 	}
 
-	return *domain.ToUser(pbUser), nil
+	return domain.ToUser(pbUser), nil
 }
 
 func (client *UserClient) GetUserByUsername(ctx context.Context, username string) (user domain.User, err error) {
@@ -73,7 +73,7 @@ func (client *UserClient) GetUserByUsername(ctx context.Context, username string
 		return domain.User{}, errors.Wrap(err, "user client error: ")
 	}
 
-	return *domain.ToUser(pbUser), nil
+	return domain.ToUser(pbUser), nil
 }
 
 func (client *UserClient) GetUsers(ctx context.Context) (users []domain.User, err error) {
@@ -83,10 +83,5 @@ func (client *UserClient) GetUsers(ctx context.Context) (users []domain.User, er
 		return nil, errors.Wrap(err, "user client error: ")
 	}
 
-	users = make([]domain.User, 0, len(pbUsers.GetUsers()))
-	for _, pbUser := range pbUsers.GetUsers() {
-		users = append(users, *domain.ToUser(pbUser))
-	}
-
-	return users, nil
+	return domain.ToUsers(pbUsers.Users), nil
 }

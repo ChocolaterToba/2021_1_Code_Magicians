@@ -35,12 +35,22 @@ func ToPbUserEdit(user User) *userpb.UserEditInput {
 	}
 }
 
-func ToUser(pbuser *userpb.UserOutput) *User {
-	return &User{
-		UserID:    uint64(pbuser.UserID),
-		Username:  pbuser.GetUsername(),
-		FirstName: pbuser.GetFirstName(),
-		LastName:  pbuser.GetLastName(),
-		Email:     pbuser.GetEmail(),
+func ToUser(pbUser *userpb.UserOutput) User {
+	return User{
+		UserID:    uint64(pbUser.UserID),
+		Username:  pbUser.GetUsername(),
+		FirstName: pbUser.GetFirstName(),
+		LastName:  pbUser.GetLastName(),
+		Email:     pbUser.GetEmail(),
 	}
+}
+
+func ToUsers(pbUsers []*userpb.UserOutput) []User {
+	result := make([]User, 0, len(pbUsers))
+
+	for _, pbUser := range pbUsers {
+		result = append(result, ToUser(pbUser))
+	}
+
+	return result
 }

@@ -69,16 +69,16 @@ func CSRFSettingMid(next http.Handler) http.Handler {
 	})
 }
 
-// CheckCookies returns *CookieInfo and true if cookie is present in sessions slice, nil and false othervise
-func CheckCookies(r *http.Request, authClient authclient.AuthClientInterface) (*domain.CookieInfo, bool) {
+// CheckCookies returns CookieInfo and true if cookie is present in sessions slice, nil and false othervise
+func CheckCookies(r *http.Request, authClient authclient.AuthClientInterface) (domain.CookieInfo, bool) {
 	cookie, err := r.Cookie(string(domain.DefaultCookieName))
 	if err != nil {
-		return nil, false
+		return domain.CookieInfo{}, false
 	}
 
 	cookieInfo, err := authClient.SearchCookieByValue(context.Background(), cookie.Value)
 	if err != nil {
-		return nil, false
+		return domain.CookieInfo{}, false
 	}
 
 	return cookieInfo, true

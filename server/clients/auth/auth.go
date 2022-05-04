@@ -12,9 +12,9 @@ import (
 )
 
 type AuthClientInterface interface {
-	LoginUser(ctx context.Context, username string, password string) (cookie *domain.CookieInfo, err error)
-	SearchCookieByValue(ctx context.Context, cookieValue string) (cookie *domain.CookieInfo, err error)
-	SearchCookieByUserID(ctx context.Context, userID uint64) (cookie *domain.CookieInfo, err error)
+	LoginUser(ctx context.Context, username string, password string) (cookie domain.CookieInfo, err error)
+	SearchCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error)
+	SearchCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error)
 	LogoutUser(ctx context.Context, cookieValue string) error
 	ChangeCredentials(ctx context.Context, userID uint64, username, password string) (err error)
 }
@@ -31,15 +31,15 @@ func NewAuthClient(authClient authproto.AuthClient, httpsOn bool) *AuthClient {
 	}
 }
 
-func (client *AuthClient) LoginUser(ctx context.Context, username string, password string) (cookie *domain.CookieInfo, err error) {
+func (client *AuthClient) LoginUser(ctx context.Context, username string, password string) (cookie domain.CookieInfo, err error) {
 	pbCookie, err := client.authClient.LoginUser(ctx,
 		&authproto.UserAuth{Username: username, Password: password})
 
 	if err != nil {
 		if strings.Contains(err.Error(), authdomain.IncorrectPasswordError.Error()) {
-			return nil, domain.ErrIncorrectPassword
+			return domain.CookieInfo{}, domain.ErrIncorrectPassword
 		}
-		return nil, errors.Wrap(err, "auth client error: ")
+		return domain.CookieInfo{}, errors.Wrap(err, "auth client error: ")
 	}
 
 	if client.httpsOn { // if https is on, we can use secure cookies
@@ -50,30 +50,30 @@ func (client *AuthClient) LoginUser(ctx context.Context, username string, passwo
 	return cookie, nil
 }
 
-func (client *AuthClient) SearchCookieByValue(ctx context.Context, cookieValue string) (cookie *domain.CookieInfo, err error) {
+func (client *AuthClient) SearchCookieByValue(ctx context.Context, cookieValue string) (cookie domain.CookieInfo, err error) {
 	pbCookie, err := client.authClient.SearchCookieByValue(ctx,
 		&authproto.CookieValue{CookieValue: cookieValue})
 
 	if err != nil {
 		if strings.Contains(err.Error(), authdomain.CookieNotFoundError.Error()) {
-			return nil, domain.ErrCookieNotFound
+			return domain.CookieInfo{}, domain.ErrCookieNotFound
 		}
-		return nil, errors.Wrap(err, "auth client error: ")
+		return domain.CookieInfo{}, errors.Wrap(err, "auth client error: ")
 	}
 
 	cookie = domain.ToCookieInfo(pbCookie, true, true, http.SameSiteDefaultMode) // TODO: move settings to constants
 	return cookie, nil
 }
 
-func (client *AuthClient) SearchCookieByUserID(ctx context.Context, userID uint64) (cookie *domain.CookieInfo, err error) {
+func (client *AuthClient) SearchCookieByUserID(ctx context.Context, userID uint64) (cookie domain.CookieInfo, err error) {
 	pbCookie, err := client.authClient.SearchCookieByUserID(ctx,
 		&authproto.UserID{Uid: userID})
 
 	if err != nil {
 		if strings.Contains(err.Error(), authdomain.CookieNotFoundError.Error()) {
-			return nil, domain.ErrCookieNotFound
+			return domain.CookieInfo{}, domain.ErrCookieNotFound
 		}
-		return nil, errors.Wrap(err, "auth client error: ")
+		return domain.CookieInfo{}, errors.Wrap(err, "auth client error: ")
 	}
 
 	cookie = domain.ToCookieInfo(pbCookie, true, true, http.SameSiteDefaultMode) // TODO: move settings to constants
