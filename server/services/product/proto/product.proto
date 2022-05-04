@@ -84,6 +84,15 @@ message GetProductRequest {
   uint64 id = 1;
 }
 
+message GetProductsRequest {
+  uint64 offset = 1;
+  uint64 page_size = 2;
+}
+
+message GetProductsResponse {
+  repeated Product products = 1;
+}
+
 message Empty {}
 
 service ProductService {
@@ -93,4 +102,5 @@ service ProductService {
   rpc   CreateProduct(CreateProductRequest) returns (CreateProductResponse) {}
   rpc   EditProduct(EditProductRequest) returns (Empty) {}
   rpc   GetProductByID(GetProductRequest) returns (Product) {}
+  rpc   GetProducts(GetProductsRequest) returns (GetProductsResponse) {}
 }

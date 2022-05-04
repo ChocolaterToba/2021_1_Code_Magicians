@@ -14,6 +14,7 @@ type ProductRepoInterface interface {
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	UpdateProduct(ctx context.Context, product domain.Product) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
+	GetProducts(ctx context.Context, offset uint64, pageSize uint64) (products []domain.Product, err error)
 }
 
 type ProductRepo struct {

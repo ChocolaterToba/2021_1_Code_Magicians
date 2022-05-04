@@ -112,3 +112,14 @@ func (facade *ProductFacade) GetProductByID(ctx context.Context, in *pb.GetProdu
 
 	return domain.ToPbProduct(product), nil
 }
+
+func (facade *ProductFacade) GetProducts(ctx context.Context, in *pb.GetProductsRequest) (*pb.GetProductsResponse, error) {
+	products, err := facade.app.GetProducts(ctx, in.GetOffset(), in.GetPageSize())
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not get product:")
+	}
+
+	return &pb.GetProductsResponse{
+		Products: domain.ToPbProducts(products),
+	}, nil
+}

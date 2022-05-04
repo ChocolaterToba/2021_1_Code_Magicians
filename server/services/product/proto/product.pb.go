@@ -778,6 +778,108 @@ func (x *GetProductRequest) GetId() uint64 {
 	return 0
 }
 
+type GetProductsRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Offset   uint64 `protobuf:"varint,1,opt,name=offset,proto3" json:"offset,omitempty"`
+	PageSize uint64 `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+}
+
+func (x *GetProductsRequest) Reset() {
+	*x = GetProductsRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_product_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetProductsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProductsRequest) ProtoMessage() {}
+
+func (x *GetProductsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_product_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProductsRequest.ProtoReflect.Descriptor instead.
+func (*GetProductsRequest) Descriptor() ([]byte, []int) {
+	return file_product_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetProductsRequest) GetOffset() uint64 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *GetProductsRequest) GetPageSize() uint64 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+type GetProductsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Products []*Product `protobuf:"bytes,1,rep,name=products,proto3" json:"products,omitempty"`
+}
+
+func (x *GetProductsResponse) Reset() {
+	*x = GetProductsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_product_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetProductsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProductsResponse) ProtoMessage() {}
+
+func (x *GetProductsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_product_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProductsResponse.ProtoReflect.Descriptor instead.
+func (*GetProductsResponse) Descriptor() ([]byte, []int) {
+	return file_product_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetProductsResponse) GetProducts() []*Product {
+	if x != nil {
+		return x.Products
+	}
+	return nil
+}
+
 type Empty struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -787,7 +889,7 @@ type Empty struct {
 func (x *Empty) Reset() {
 	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_product_proto_msgTypes[10]
+		mi := &file_product_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -800,7 +902,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_product_proto_msgTypes[10]
+	mi := &file_product_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -813,7 +915,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_product_proto_rawDescGZIP(), []int{10}
+	return file_product_proto_rawDescGZIP(), []int{12}
 }
 
 var File_product_proto protoreflect.FileDescriptor
@@ -909,8 +1011,17 @@ var file_product_proto_rawDesc = []byte{
 	0x70, 0x5f, 0x69, 0x64, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x73, 0x68, 0x6f, 0x70,
 	0x49, 0x64, 0x22, 0x23, 0x0a, 0x11, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79,
-	0x32, 0x9c, 0x03, 0x0a, 0x0e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x53, 0x65, 0x72, 0x76,
+	0x01, 0x28, 0x04, 0x52, 0x02, 0x69, 0x64, 0x22, 0x49, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x50, 0x72,
+	0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a,
+	0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x06, 0x6f,
+	0x66, 0x66, 0x73, 0x65, 0x74, 0x12, 0x1b, 0x0a, 0x09, 0x70, 0x61, 0x67, 0x65, 0x5f, 0x73, 0x69,
+	0x7a, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x08, 0x70, 0x61, 0x67, 0x65, 0x53, 0x69,
+	0x7a, 0x65, 0x22, 0x43, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2c, 0x0a, 0x08, 0x70, 0x72, 0x6f,
+	0x64, 0x75, 0x63, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x70, 0x72,
+	0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x52, 0x08, 0x70,
+	0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79,
+	0x32, 0xe8, 0x03, 0x0a, 0x0e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x53, 0x65, 0x72, 0x76,
 	0x69, 0x63, 0x65, 0x12, 0x47, 0x0a, 0x0a, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x53, 0x68, 0x6f,
 	0x70, 0x12, 0x1a, 0x2e, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x43, 0x72, 0x65, 0x61,
 	0x74, 0x65, 0x53, 0x68, 0x6f, 0x70, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1b, 0x2e,
@@ -935,10 +1046,15 @@ var file_product_proto_rawDesc = []byte{
 	0x0e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x42, 0x79, 0x49, 0x44, 0x12,
 	0x1a, 0x2e, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f,
 	0x64, 0x75, 0x63, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x10, 0x2e, 0x70, 0x72,
-	0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x22, 0x00, 0x42,
-	0x22, 0x5a, 0x20, 0x70, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x65, 0x73, 0x74, 0x2f, 0x73, 0x65, 0x72,
-	0x76, 0x69, 0x63, 0x65, 0x73, 0x2f, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x2f, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x22, 0x00, 0x12,
+	0x4a, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x12, 0x1b,
+	0x2e, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x64,
+	0x75, 0x63, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x1c, 0x2e, 0x70, 0x72,
+	0x6f, 0x64, 0x75, 0x63, 0x74, 0x2e, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x00, 0x42, 0x22, 0x5a, 0x20, 0x70,
+	0x69, 0x6e, 0x74, 0x65, 0x72, 0x65, 0x73, 0x74, 0x2f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x73, 0x2f, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -953,7 +1069,7 @@ func file_product_proto_rawDescGZIP() []byte {
 	return file_product_proto_rawDescData
 }
 
-var file_product_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_product_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_product_proto_goTypes = []interface{}{
 	(*Shop)(nil),                  // 0: product.Shop
 	(*CreateShopRequest)(nil),     // 1: product.CreateShopRequest
@@ -965,26 +1081,31 @@ var file_product_proto_goTypes = []interface{}{
 	(*CreateProductResponse)(nil), // 7: product.CreateProductResponse
 	(*EditProductRequest)(nil),    // 8: product.EditProductRequest
 	(*GetProductRequest)(nil),     // 9: product.GetProductRequest
-	(*Empty)(nil),                 // 10: product.Empty
+	(*GetProductsRequest)(nil),    // 10: product.GetProductsRequest
+	(*GetProductsResponse)(nil),   // 11: product.GetProductsResponse
+	(*Empty)(nil),                 // 12: product.Empty
 }
 var file_product_proto_depIdxs = []int32{
-	1,  // 0: product.ProductService.CreateShop:input_type -> product.CreateShopRequest
-	3,  // 1: product.ProductService.EditShop:input_type -> product.EditShopRequest
-	4,  // 2: product.ProductService.GetShopByID:input_type -> product.GetShopRequest
-	6,  // 3: product.ProductService.CreateProduct:input_type -> product.CreateProductRequest
-	8,  // 4: product.ProductService.EditProduct:input_type -> product.EditProductRequest
-	9,  // 5: product.ProductService.GetProductByID:input_type -> product.GetProductRequest
-	2,  // 6: product.ProductService.CreateShop:output_type -> product.CreateShopResponse
-	10, // 7: product.ProductService.EditShop:output_type -> product.Empty
-	0,  // 8: product.ProductService.GetShopByID:output_type -> product.Shop
-	7,  // 9: product.ProductService.CreateProduct:output_type -> product.CreateProductResponse
-	10, // 10: product.ProductService.EditProduct:output_type -> product.Empty
-	5,  // 11: product.ProductService.GetProductByID:output_type -> product.Product
-	6,  // [6:12] is the sub-list for method output_type
-	0,  // [0:6] is the sub-list for method input_type
-	0,  // [0:0] is the sub-list for extension type_name
-	0,  // [0:0] is the sub-list for extension extendee
-	0,  // [0:0] is the sub-list for field type_name
+	5,  // 0: product.GetProductsResponse.products:type_name -> product.Product
+	1,  // 1: product.ProductService.CreateShop:input_type -> product.CreateShopRequest
+	3,  // 2: product.ProductService.EditShop:input_type -> product.EditShopRequest
+	4,  // 3: product.ProductService.GetShopByID:input_type -> product.GetShopRequest
+	6,  // 4: product.ProductService.CreateProduct:input_type -> product.CreateProductRequest
+	8,  // 5: product.ProductService.EditProduct:input_type -> product.EditProductRequest
+	9,  // 6: product.ProductService.GetProductByID:input_type -> product.GetProductRequest
+	10, // 7: product.ProductService.GetProducts:input_type -> product.GetProductsRequest
+	2,  // 8: product.ProductService.CreateShop:output_type -> product.CreateShopResponse
+	12, // 9: product.ProductService.EditShop:output_type -> product.Empty
+	0,  // 10: product.ProductService.GetShopByID:output_type -> product.Shop
+	7,  // 11: product.ProductService.CreateProduct:output_type -> product.CreateProductResponse
+	12, // 12: product.ProductService.EditProduct:output_type -> product.Empty
+	5,  // 13: product.ProductService.GetProductByID:output_type -> product.Product
+	11, // 14: product.ProductService.GetProducts:output_type -> product.GetProductsResponse
+	8,  // [8:15] is the sub-list for method output_type
+	1,  // [1:8] is the sub-list for method input_type
+	1,  // [1:1] is the sub-list for extension type_name
+	1,  // [1:1] is the sub-list for extension extendee
+	0,  // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_product_proto_init() }
@@ -1114,6 +1235,30 @@ func file_product_proto_init() {
 			}
 		}
 		file_product_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetProductsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_product_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetProductsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_product_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Empty); i {
 			case 0:
 				return &v.state
@@ -1132,7 +1277,7 @@ func file_product_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_product_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

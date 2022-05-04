@@ -55,3 +55,26 @@ func ToPbProduct(product Product) *pb.Product {
 		ShopId:       product.ShopId,
 	}
 }
+
+func ToPbProducts(products []Product) []*pb.Product {
+	result := make([]*pb.Product, 0, len(products))
+
+	for _, product := range products {
+		result = append(result, &pb.Product{
+			Id:           product.Id,
+			Title:        product.Title,
+			Description:  product.Description,
+			Price:        product.Price,
+			Availability: product.Availability,
+			AssemblyTime: product.AssemblyTime,
+			PartsAmount:  product.PartsAmount,
+			Rating:       product.Rating,
+			Size:         product.Size,
+			Category:     product.Category,
+			ImageLinks:   product.ImageLinks,
+			ShopId:       product.ShopId,
+		})
+	}
+
+	return result
+}

@@ -94,3 +94,40 @@ func (repo *ProductRepo) GetProductByID(ctx context.Context, id uint64) (product
 	}
 	return product, nil
 }
+
+func (repo *ProductRepo) GetProducts(ctx context.Context, offset uint64, pageSize uint64) (products []domain.Product, err error) {
+	tx, err := repo.postgresDB.Begin(ctx)
+	if err != nil {
+		return nil, domain.TransactionBeginError
+	}
+	defer tx.Rollback(ctx)
+
+	getProductsQuery := `SELECT id, title, description, price, availability, assembly_time, 
+						 parts_amount, rating, size, category, shop_id
+						 FROM products
+						 ORDER BY id DESX
+						 LIMIT $1
+						 OFFSET $2`
+
+	rows, err := tx.Query(ctx, getProductsQuery, pageSize, pageSize*offset)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var product domain.Product
+		err = rows.Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.Availability, &product.AssemblyTime,
+			&product.PartsAmount, &product.Rating, &product.Size, &product.Category, &product.ShopId)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, domain.TransactionCommitError
+	}
+	return products, nil
+}
