@@ -54,6 +54,15 @@ func ToProductOutput(product Product) (output ProductOutput) {
 	}
 }
 
+func ToProductOutputs(products []Product) (outputs []ProductOutput) {
+	outputs = make([]ProductOutput, 0, len(products))
+
+	for _, product := range products {
+		outputs = append(outputs, ToProductOutput(product))
+	}
+	return outputs
+}
+
 func ToProduct(pbProduct *productpb.Product) Product {
 	return Product{
 		Id:           pbProduct.Id,

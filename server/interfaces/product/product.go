@@ -123,3 +123,56 @@ func (facade *ProductFacade) GetProductByID(w http.ResponseWriter, r *http.Reque
 	w.Write(responseBody)
 	return
 }
+
+// Get Products returns product with offset ond limit specified in request
+func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request) {
+	queryParams := r.URL.Query()
+
+	offsetString := queryParams.Get(string(domain.OffsetKey))
+	offset, err := strconv.ParseUint(offsetString, 10, 64)
+	if err != nil {
+		facade.logger.Info("Could not get offset from query params",
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	pageSizeString := queryParams.Get(string(domain.PageSizeKey))
+	pageSize, err := strconv.ParseUint(pageSizeString, 10, 64)
+	if err != nil {
+		facade.logger.Info("Could not get page size from query params",
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	products, err := facade.productClient.GetProducts(context.Background(), offset, pageSize)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		if err == domain.ErrProductNotFound {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	productOutputs := domain.ToProductOutputs(products)
+	responseBody, err := json.Marshal(productOutputs)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseBody)
+	return
+}

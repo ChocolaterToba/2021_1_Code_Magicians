@@ -57,6 +57,8 @@ func CreateRouter(authClient authclient.AuthClientInterface,
 	r.HandleFunc("/api/product/{id:[0-9]+}", mid.AuthMid(productFacade.EditProduct, authClient)).Methods("PUT")
 	r.HandleFunc("/api/product/{id:[0-9]+}", productFacade.GetProductByID).Methods("GET")
 
+	r.HandleFunc("/api/products", productFacade.GetProducts).Methods("GET")
+
 	if csrfOn {
 		r.HandleFunc("/api/csrf", func(w http.ResponseWriter, r *http.Request) { // Is used only for getting csrf key
 			w.WriteHeader(http.StatusCreated)
