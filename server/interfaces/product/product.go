@@ -129,23 +129,31 @@ func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request)
 	queryParams := r.URL.Query()
 
 	pageOffsetString := queryParams.Get(string(domain.PageOffsetKey))
-	pageOffset, err := strconv.ParseUint(pageOffsetString, 10, 64)
-	if err != nil {
-		facade.logger.Info("Could not get page offset from query params",
-			zap.String("url", r.RequestURI),
-			zap.String("method", r.Method))
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	pageOffset := uint64(0)
+	if pageOffsetString != "" {
+		var err error
+		pageOffset, err = strconv.ParseUint(pageOffsetString, 10, 64)
+		if err != nil {
+			facade.logger.Info("Could not get page offset from query params",
+				zap.String("url", r.RequestURI),
+				zap.String("method", r.Method))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
 	pageSizeString := queryParams.Get(string(domain.PageSizeKey))
-	pageSize, err := strconv.ParseUint(pageSizeString, 10, 64)
-	if err != nil {
-		facade.logger.Info("Could not get page size from query params",
-			zap.String("url", r.RequestURI),
-			zap.String("method", r.Method))
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	pageSize := uint64(0)
+	if pageSizeString != "" {
+		var err error
+		pageSize, err = strconv.ParseUint(pageOffsetString, 10, 64)
+		if err != nil {
+			facade.logger.Info("Could not get page offset from query params",
+				zap.String("url", r.RequestURI),
+				zap.String("method", r.Method))
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
 	products, err := facade.productClient.GetProducts(context.Background(), pageOffset, pageSize)
