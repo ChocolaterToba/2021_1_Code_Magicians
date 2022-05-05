@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"pinterest/services/product/domain"
 
+	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
 )
@@ -97,21 +99,27 @@ func (repo *ProductRepo) GetProductByID(ctx context.Context, id uint64) (product
 	return product, nil
 }
 
-func (repo *ProductRepo) GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64) (products []domain.Product, err error) {
+func (repo *ProductRepo) GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error) {
 	tx, err := repo.postgresDB.Begin(ctx)
 	if err != nil {
 		return nil, domain.TransactionBeginError
 	}
 	defer tx.Rollback(ctx)
 
-	getProductsQuery := `SELECT id, title, description, price, availability, assembly_time, 
-						 parts_amount, rating, size, category, image_links, video_link, shop_id
-						 FROM products
-						 ORDER BY id DESC
-						 LIMIT $1
-						 OFFSET $2`
+	sb := sqlbuilder.Select("id", "title", "description", "price", "availability", "assembly_time",
+		"parts_amount", "rating", "size", "category", "image_links", "video_link", "shop_id").
+		From("products").
+		Desc().OrderBy("id").
+		Limit(int(pageSize)).Offset(int(pageSize * pageOffset))
 
-	rows, err := tx.Query(ctx, getProductsQuery, pageSize, pageSize*pageOffset)
+	if category != "" {
+		fmt.Println(category)
+		sb.Where(sb.Equal("category", category))
+	}
+
+	query, args := sb.BuildWithFlavor(sqlbuilder.PostgreSQL)
+
+	rows, err := tx.Query(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

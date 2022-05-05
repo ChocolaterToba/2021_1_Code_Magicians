@@ -156,7 +156,9 @@ func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	products, err := facade.productClient.GetProducts(context.Background(), pageOffset, pageSize)
+	category := queryParams.Get(string(domain.CategoryKey))
+
+	products, err := facade.productClient.GetProducts(context.Background(), pageOffset, pageSize, category)
 	if err != nil {
 		facade.logger.Info(err.Error(),
 			zap.String("url", r.RequestURI),

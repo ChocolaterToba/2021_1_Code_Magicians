@@ -88,6 +88,7 @@ message GetProductRequest {
 message GetProductsRequest {
   uint64 page_offset = 1;
   uint64 page_size = 2;
+  string category = 3;
 }
 
 message GetProductsResponse {

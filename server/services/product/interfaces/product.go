@@ -114,7 +114,7 @@ func (facade *ProductFacade) GetProductByID(ctx context.Context, in *pb.GetProdu
 }
 
 func (facade *ProductFacade) GetProducts(ctx context.Context, in *pb.GetProductsRequest) (*pb.GetProductsResponse, error) {
-	products, err := facade.app.GetProducts(ctx, in.GetPageOffset(), in.GetPageSize())
+	products, err := facade.app.GetProducts(ctx, in.GetPageOffset(), in.GetPageSize(), in.GetCategory())
 	if err != nil {
 		return nil, errors.Wrap(err, "Could not get product:")
 	}

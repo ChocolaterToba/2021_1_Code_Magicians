@@ -8,4 +8,5 @@ const (
 	UsernameKey   Key = "username"
 	PageOffsetKey Key = "pageOffset"
 	PageSizeKey   Key = "pageSize"
+	CategoryKey   Key = "category"
 )

@@ -6,6 +6,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/csrf v1.7.1
 	github.com/gorilla/mux v1.8.0
+	github.com/huandu/go-sqlbuilder v1.13.0 // indirect
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/joho/godotenv v1.3.0
 	github.com/lib/pq v1.10.2
