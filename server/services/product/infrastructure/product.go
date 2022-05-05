@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"pinterest/services/product/domain"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -113,7 +112,6 @@ func (repo *ProductRepo) GetProducts(ctx context.Context, pageOffset uint64, pag
 		Limit(int(pageSize)).Offset(int(pageSize * pageOffset))
 
 	if category != "" {
-		fmt.Println(category)
 		sb.Where(sb.Equal("category", category))
 	}
 

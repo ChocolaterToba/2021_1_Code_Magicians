@@ -146,7 +146,7 @@ func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request)
 	pageSize := uint64(0)
 	if pageSizeString != "" {
 		var err error
-		pageSize, err = strconv.ParseUint(pageOffsetString, 10, 64)
+		pageSize, err = strconv.ParseUint(pageSizeString, 10, 64)
 		if err != nil {
 			facade.logger.Info("Could not get page offset from query params",
 				zap.String("url", r.RequestURI),
