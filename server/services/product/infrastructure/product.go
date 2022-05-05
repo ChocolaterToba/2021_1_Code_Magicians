@@ -74,13 +74,14 @@ func (repo *ProductRepo) GetProductByID(ctx context.Context, id uint64) (product
 	defer tx.Rollback(ctx)
 
 	getProductByIDQuery := `SELECT id, title, description, price, availability, assembly_time, 
-							parts_amount, rating, size, category, image_links, shop_id
+							parts_amount, rating, size, category, image_links, video_link, shop_id
 							FROM products
 							WHERE id = $1`
 
 	row := tx.QueryRow(ctx, getProductByIDQuery, id)
-	err = row.Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.Availability, &product.AssemblyTime,
-		&product.PartsAmount, &product.Rating, &product.Size, &product.Category, pq.Array(&product.ImageLinks), &product.ShopId)
+	err = row.Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.Availability,
+		&product.AssemblyTime, &product.PartsAmount, &product.Rating, &product.Size, &product.Category,
+		pq.Array(&product.ImageLinks), &product.VideoLink, &product.ShopId)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return domain.Product{}, domain.ProductNotFoundError
@@ -104,7 +105,7 @@ func (repo *ProductRepo) GetProducts(ctx context.Context, pageOffset uint64, pag
 	defer tx.Rollback(ctx)
 
 	getProductsQuery := `SELECT id, title, description, price, availability, assembly_time, 
-						 parts_amount, rating, size, category, image_links, shop_id
+						 parts_amount, rating, size, category, image_links, video_link, shop_id
 						 FROM products
 						 ORDER BY id DESC
 						 LIMIT $1
@@ -117,8 +118,9 @@ func (repo *ProductRepo) GetProducts(ctx context.Context, pageOffset uint64, pag
 
 	for rows.Next() {
 		var product domain.Product
-		err = rows.Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.Availability, &product.AssemblyTime,
-			&product.PartsAmount, &product.Rating, &product.Size, &product.Category, pq.Array(&product.ImageLinks), &product.ShopId)
+		err = rows.Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.Availability,
+			&product.AssemblyTime, &product.PartsAmount, &product.Rating, &product.Size, &product.Category,
+			pq.Array(&product.ImageLinks), &product.VideoLink, &product.ShopId)
 		if err != nil {
 			return nil, err
 		}

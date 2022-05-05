@@ -20,5 +20,6 @@ type Product struct {
 	Size         string
 	Category     string
 	ImageLinks   []string
+	VideoLink    string
 	ShopId       uint64
 }

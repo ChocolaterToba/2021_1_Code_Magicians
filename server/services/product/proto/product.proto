@@ -48,7 +48,8 @@ message Product {
   string size = 9;
   string category = 10;
   repeated string image_links = 11;
-  uint64 shop_id = 12;
+  string video_link = 12;
+  uint64 shop_id = 13;
 }
 
 message CreateProductRequest {

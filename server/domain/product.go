@@ -18,6 +18,7 @@ type Product struct {
 	Size         string   `json:"size"`
 	Category     string   `json:"category"`
 	ImageLinks   []string `json:"image_links"`
+	VideoLink    string   `json:"video_link"`
 	ShopId       uint64   `json:"shop_id"`
 }
 
@@ -34,6 +35,7 @@ type ProductOutput struct {
 	Size         string   `json:"size"`
 	Category     string   `json:"category"`
 	ImageLinks   []string `json:"image_links"`
+	VideoLink    string   `json:"video_link"`
 	ShopId       uint64   `json:"shop_id"`
 }
 
@@ -50,6 +52,7 @@ func ToProductOutput(product Product) (output ProductOutput) {
 		Size:         product.Size,
 		Category:     product.Category,
 		ImageLinks:   product.ImageLinks,
+		VideoLink:    product.VideoLink,
 		ShopId:       product.ShopId,
 	}
 }
@@ -76,6 +79,7 @@ func ToProduct(pbProduct *productpb.Product) Product {
 		Size:         pbProduct.Size,
 		Category:     pbProduct.Category,
 		ImageLinks:   pbProduct.ImageLinks,
+		VideoLink:    pbProduct.VideoLink,
 		ShopId:       pbProduct.ShopId,
 	}
 }

@@ -35,6 +35,7 @@ func ToProduct(pbProduct *pb.Product) Product {
 		Size:         pbProduct.GetSize(),
 		Category:     pbProduct.GetCategory(),
 		ImageLinks:   pbProduct.GetImageLinks(),
+		VideoLink:    pbProduct.GetVideoLink(),
 		ShopId:       pbProduct.GetShopId(),
 	}
 }
@@ -52,6 +53,7 @@ func ToPbProduct(product Product) *pb.Product {
 		Size:         product.Size,
 		Category:     product.Category,
 		ImageLinks:   product.ImageLinks,
+		VideoLink:    product.VideoLink,
 		ShopId:       product.ShopId,
 	}
 }
@@ -60,20 +62,7 @@ func ToPbProducts(products []Product) []*pb.Product {
 	result := make([]*pb.Product, 0, len(products))
 
 	for _, product := range products {
-		result = append(result, &pb.Product{
-			Id:           product.Id,
-			Title:        product.Title,
-			Description:  product.Description,
-			Price:        product.Price,
-			Availability: product.Availability,
-			AssemblyTime: product.AssemblyTime,
-			PartsAmount:  product.PartsAmount,
-			Rating:       product.Rating,
-			Size:         product.Size,
-			Category:     product.Category,
-			ImageLinks:   product.ImageLinks,
-			ShopId:       product.ShopId,
-		})
+		result = append(result, ToPbProduct(product))
 	}
 
 	return result
