@@ -91,8 +91,34 @@ message GetProductsRequest {
   string category = 3;
 }
 
+message GetProductsByIDsRequest {
+  repeated uint64 ids = 1;
+}
+
 message GetProductsResponse {
   repeated Product products = 1;
+}
+
+message AddToCartRequest {
+  uint64 user_id = 1;
+  uint64 product_id = 2;
+}
+
+message GetCartRequest {
+  uint64 user_id = 1;
+}
+
+message ProductWithQuantity {
+  Product product = 1;
+  uint64 quantity = 2;
+}
+
+message GetCartResponse {
+  repeated ProductWithQuantity products = 1;
+}
+
+message CompleteCartRequest {
+  uint64 user_id = 1;
 }
 
 message Empty {}
@@ -104,5 +130,9 @@ service ProductService {
   rpc   CreateProduct(CreateProductRequest) returns (CreateProductResponse) {}
   rpc   EditProduct(EditProductRequest) returns (Empty) {}
   rpc   GetProductByID(GetProductRequest) returns (Product) {}
+  rpc   GetProductsByIDs(GetProductsByIDsRequest) returns (GetProductsResponse) {}
   rpc   GetProducts(GetProductsRequest) returns (GetProductsResponse) {}
+  rpc   AddToCart(AddToCartRequest) returns (Empty) {}
+  rpc   GetCart(GetCartRequest) returns (GetCartResponse) {}
+  rpc   CompleteCart(CompleteCartRequest) returns (Empty) {}
 }

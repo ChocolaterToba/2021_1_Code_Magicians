@@ -7,4 +7,5 @@ var (
 	TransactionCommitError = errors.New("Could not commit transaction")
 	ShopNotFoundError      = errors.New("Could not find shop")
 	ProductNotFoundError   = errors.New("Could not find product")
+	CartNotFoundError      = errors.New("Could not find cart")
 )

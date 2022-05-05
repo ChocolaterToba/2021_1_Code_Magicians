@@ -14,7 +14,11 @@ type ProductRepoInterface interface {
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	UpdateProduct(ctx context.Context, product domain.Product) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
+	GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error)
 	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error)
+	CreateCart(ctx context.Context, userID uint64) (id uint64, err error)
+	GetCart(ctx context.Context, userID uint64) (cart map[uint64]uint64, err error)
+	UpdateCart(ctx context.Context, userID uint64, cart map[uint64]uint64) (err error)
 }
 
 type ProductRepo struct {

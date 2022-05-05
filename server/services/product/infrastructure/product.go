@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"pinterest/services/product/domain"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -96,6 +97,47 @@ func (repo *ProductRepo) GetProductByID(ctx context.Context, id uint64) (product
 		return domain.Product{}, domain.TransactionCommitError
 	}
 	return product, nil
+}
+
+func (repo *ProductRepo) GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error) {
+	tx, err := repo.postgresDB.Begin(ctx)
+	if err != nil {
+		return nil, domain.TransactionBeginError
+	}
+	defer tx.Rollback(ctx)
+
+	sb := sqlbuilder.Select("id", "title", "description", "price", "availability", "assembly_time",
+		"parts_amount", "rating", "size", "category", "image_links", "video_link", "shop_id").
+		From("products")
+
+	sb.Where(sb.In("id", ids))
+
+	query, args := sb.BuildWithFlavor(sqlbuilder.PostgreSQL)
+
+	fmt.Println(query)
+
+	rows, err := tx.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var product domain.Product
+		err = rows.Scan(&product.Id, &product.Title, &product.Description, &product.Price, &product.Availability,
+			&product.AssemblyTime, &product.PartsAmount, &product.Rating, &product.Size, &product.Category,
+			pq.Array(&product.ImageLinks), &product.VideoLink, &product.ShopId)
+		if err != nil {
+			return nil, err
+		}
+
+		products = append(products, product)
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, domain.TransactionCommitError
+	}
+	return products, nil
 }
 
 func (repo *ProductRepo) GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error) {
