@@ -144,6 +144,15 @@ func (facade *ProductFacade) AddToCart(ctx context.Context, in *pb.AddToCartRequ
 	return &pb.Empty{}, nil
 }
 
+func (facade *ProductFacade) RemoveFromCart(ctx context.Context, in *pb.RemoveFromCartRequest) (*pb.Empty, error) {
+	err := facade.app.RemoveFromCart(ctx, in.GetUserId(), in.GetProductId())
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not remove product from cart:")
+	}
+
+	return &pb.Empty{}, nil
+}
+
 func (facade *ProductFacade) GetCart(ctx context.Context, in *pb.GetCartRequest) (*pb.GetCartResponse, error) {
 	cart, err := facade.app.GetCart(ctx, in.GetUserId())
 	if err != nil {

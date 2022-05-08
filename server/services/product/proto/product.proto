@@ -104,6 +104,11 @@ message AddToCartRequest {
   uint64 product_id = 2;
 }
 
+message RemoveFromCartRequest {
+  uint64 user_id = 1;
+  uint64 product_id = 2;
+}
+
 message GetCartRequest {
   uint64 user_id = 1;
 }
@@ -133,6 +138,7 @@ service ProductService {
   rpc   GetProductsByIDs(GetProductsByIDsRequest) returns (GetProductsResponse) {}
   rpc   GetProducts(GetProductsRequest) returns (GetProductsResponse) {}
   rpc   AddToCart(AddToCartRequest) returns (Empty) {}
+  rpc   RemoveFromCart(RemoveFromCartRequest) returns (Empty) {}
   rpc   GetCart(GetCartRequest) returns (GetCartResponse) {}
   rpc   CompleteCart(CompleteCartRequest) returns (Empty) {}
 }

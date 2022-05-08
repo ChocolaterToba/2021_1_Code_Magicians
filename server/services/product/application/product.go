@@ -19,6 +19,7 @@ type ProductAppInterface interface {
 	GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error)
 	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error)
 	AddToCart(ctx context.Context, userID uint64, productID uint64) (err error)
+	RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error)
 	GetCart(ctx context.Context, userID uint64) (cart map[uint64]uint64, err error)
 	CompleteCart(ctx context.Context, userID uint64) (err error)
 }
@@ -141,7 +142,42 @@ func (app *ProductApp) AddToCart(ctx context.Context, userID uint64, productID u
 		}
 	}
 
+	// check if product exists
+	_, err = app.repo.GetProductByID(ctx, productID)
+	if err != nil {
+		return err
+	}
+
 	cart[productID] = cart[productID] + 1
+	return app.repo.UpdateCart(ctx, userID, cart)
+}
+
+func (app *ProductApp) RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error) {
+	cart, err := app.repo.GetCart(ctx, userID)
+	if err != nil {
+		if err == domain.CartNotFoundError {
+			_, err := app.repo.CreateCart(ctx, userID)
+			if err != nil {
+				return err
+			}
+
+			cart = make(map[uint64]uint64) // emptying cart just in case
+		} else {
+			return err
+		}
+	}
+
+	// check if product exists
+	_, err = app.repo.GetProductByID(ctx, productID)
+	if err != nil {
+		return err
+	}
+
+	if cart[productID] < 1 {
+		return domain.ProductNotFoundInCartError
+	}
+
+	cart[productID] = cart[productID] - 1
 	return app.repo.UpdateCart(ctx, userID, cart)
 }
 
