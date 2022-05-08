@@ -18,6 +18,10 @@ type ProductClientInterface interface {
 	EditProduct(ctx context.Context, product domain.Product) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
 	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error)
+	AddToCart(ctx context.Context, userID uint64, productID uint64) (err error)
+	RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error)
+	GetCart(ctx context.Context, userID uint64) (cart []domain.ProductWithQuantity, err error)
+	CompleteCart(ctx context.Context, userID uint64) (err error)
 }
 
 type ProductClient struct {
@@ -109,4 +113,71 @@ func (client *ProductClient) GetProducts(ctx context.Context, pageOffset uint64,
 	}
 
 	return domain.ToProducts(pbProducts.Products), nil
+}
+
+func (client *ProductClient) AddToCart(ctx context.Context, userID uint64, productID uint64) (err error) {
+	_, err = client.productClient.AddToCart(ctx, &productproto.AddToCartRequest{
+		UserId:    userID,
+		ProductId: productID,
+	})
+
+	if err != nil {
+		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
+			return domain.ErrProductNotFound
+		}
+		return errors.Wrap(err, "product client error: ")
+	}
+
+	return nil
+}
+
+func (client *ProductClient) RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error) {
+	_, err = client.productClient.RemoveFromCart(ctx, &productproto.RemoveFromCartRequest{
+		UserId:    userID,
+		ProductId: productID,
+	})
+
+	if err != nil {
+		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
+			return domain.ErrProductNotFound
+		}
+		if strings.Contains(err.Error(), productdomain.ProductNotFoundInCartError.Error()) {
+			return domain.ErrProductNotFoundInCart
+		}
+		return errors.Wrap(err, "product client error: ")
+	}
+
+	return nil
+}
+
+func (client *ProductClient) GetCart(ctx context.Context, userID uint64) (cart []domain.ProductWithQuantity, err error) {
+	pbCart, err := client.productClient.GetCart(ctx, &productproto.GetCartRequest{
+		UserId: userID,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "product client error: ")
+	}
+
+	cart = make([]domain.ProductWithQuantity, 0, len(pbCart.Products))
+	for _, pbProductWithQuantity := range pbCart.Products {
+		cart = append(cart, domain.ToProductWithQuantity(pbProductWithQuantity))
+	}
+
+	return cart, nil
+}
+
+func (client *ProductClient) CompleteCart(ctx context.Context, userID uint64) (err error) {
+	_, err = client.productClient.CompleteCart(ctx, &productproto.CompleteCartRequest{
+		UserId: userID,
+	})
+
+	if err != nil {
+		if strings.Contains(err.Error(), productdomain.CartEmptyError.Error()) {
+			return domain.ErrCartEmpty
+		}
+		return errors.Wrap(err, "product client error: ")
+	}
+
+	return nil
 }

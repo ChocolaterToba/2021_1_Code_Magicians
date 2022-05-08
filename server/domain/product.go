@@ -39,6 +39,15 @@ type ProductOutput struct {
 	ShopId       uint64   `json:"shop_id"`
 }
 
+type ProductWithQuantity struct {
+	Product  ProductOutput
+	Quantity uint64
+}
+
+type ProductIDResponse struct {
+	ProductID uint64 `json:"product_id"`
+}
+
 func ToProductOutput(product Product) (output ProductOutput) {
 	return ProductOutput{
 		Id:           product.Id,
@@ -123,6 +132,9 @@ func ToPbEditProductRequest(product Product) *productpb.EditProductRequest {
 	}
 }
 
-type ProductIDResponse struct {
-	ProductID uint64 `json:"product_id"`
+func ToProductWithQuantity(pbProductWithQuantity *productpb.ProductWithQuantity) ProductWithQuantity {
+	return ProductWithQuantity{
+		Product:  ToProductOutput(ToProduct(pbProductWithQuantity.Product)),
+		Quantity: pbProductWithQuantity.Quantity,
+	}
 }

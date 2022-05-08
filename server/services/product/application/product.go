@@ -155,16 +155,16 @@ func (app *ProductApp) AddToCart(ctx context.Context, userID uint64, productID u
 func (app *ProductApp) RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error) {
 	cart, err := app.repo.GetCart(ctx, userID)
 	if err != nil {
-		if err == domain.CartNotFoundError {
-			_, err := app.repo.CreateCart(ctx, userID)
-			if err != nil {
-				return err
-			}
-
-			cart = make(map[uint64]uint64) // emptying cart just in case
-		} else {
+		if err != domain.CartNotFoundError {
 			return err
 		}
+
+		_, err := app.repo.CreateCart(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		cart = make(map[uint64]uint64) // emptying cart just in case
 	}
 
 	// check if product exists
@@ -181,6 +181,25 @@ func (app *ProductApp) RemoveFromCart(ctx context.Context, userID uint64, produc
 	return app.repo.UpdateCart(ctx, userID, cart)
 }
 
+func (app *ProductApp) GetCart(ctx context.Context, userID uint64) (cart map[uint64]uint64, err error) {
+	cart, err = app.repo.GetCart(ctx, userID)
+	if err != nil {
+		if err != domain.CartNotFoundError {
+			return nil, err
+		}
+
+		_, err := app.repo.CreateCart(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+
+		cart = make(map[uint64]uint64)
+		return cart, nil
+	}
+
+	return cart, nil
+}
+
 func (app *ProductApp) CompleteCart(ctx context.Context, userID uint64) (err error) {
 	cart, err := app.repo.GetCart(ctx, userID)
 	if err != nil {
@@ -189,6 +208,10 @@ func (app *ProductApp) CompleteCart(ctx context.Context, userID uint64) (err err
 
 	fmt.Println("Тут мы якобы шлём письмо, что к нам поступил такой-то заказ")
 	fmt.Println(cart)
+
+	if len(cart) == 0 {
+		return domain.CartEmptyError
+	}
 
 	return app.repo.UpdateCart(ctx, userID, make(map[uint64]uint64)) // emptying existing cart
 }

@@ -9,4 +9,5 @@ var (
 	ProductNotFoundError       = errors.New("Could not find product")
 	CartNotFoundError          = errors.New("Could not find cart")
 	ProductNotFoundInCartError = errors.New("Could not find product in cart")
+	CartEmptyError             = errors.New("Cart is empty")
 )
