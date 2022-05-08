@@ -128,7 +128,7 @@ func (facade *ProductFacade) GetProductByID(w http.ResponseWriter, r *http.Reque
 // Get Products returns product with page offset and size specified in request
 func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request) {
 	productIDs := make([]uint64, 0)
-	err := json.NewDecoder(r.Body).Decode(productIDs)
+	err := json.NewDecoder(r.Body).Decode(&productIDs)
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
 		w.WriteHeader(http.StatusBadRequest)
@@ -140,7 +140,7 @@ func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request)
 		facade.logger.Info(err.Error(),
 			zap.String("url", r.RequestURI),
 			zap.String("method", r.Method))
-		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
+		if strings.Contains(err.Error(), domain.ErrProductNotFound.Error()) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}

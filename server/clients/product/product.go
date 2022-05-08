@@ -105,7 +105,7 @@ func (client *ProductClient) GetProductsByIDs(ctx context.Context, ids []uint64)
 	pbProducts, err := client.productClient.GetProductsByIDs(ctx, &productproto.GetProductsByIDsRequest{Ids: ids})
 	if err != nil {
 		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
-			return nil, err // We return "raw" err here so that it can be given to client later
+			return nil, errors.Wrap(err, domain.ErrProductNotFound.Error()) // We return "raw" err here so that it can be given to client later
 		}
 		return nil, errors.Wrap(err, "product client error")
 	}

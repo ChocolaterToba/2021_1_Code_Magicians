@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"pinterest/services/product/domain"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -110,11 +109,9 @@ func (repo *ProductRepo) GetProductsByIDs(ctx context.Context, ids []uint64) (pr
 		"parts_amount", "rating", "size", "category", "image_links", "video_link", "shop_id").
 		From("products")
 
-	sb.Where(sb.In("id", ids))
+	sb.Where(sb.In("id", sqlbuilder.Flatten(ids)...)) // Flatten is needed to cast []uint64 to []interface{}, it can't be done directly
 
 	query, args := sb.BuildWithFlavor(sqlbuilder.PostgreSQL)
-
-	fmt.Println(query)
 
 	rows, err := tx.Query(ctx, query, args...)
 	if err != nil {

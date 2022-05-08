@@ -39,7 +39,7 @@ func (client *AuthClient) LoginUser(ctx context.Context, username string, passwo
 		if strings.Contains(err.Error(), authdomain.IncorrectPasswordError.Error()) {
 			return domain.CookieInfo{}, domain.ErrIncorrectPassword
 		}
-		return domain.CookieInfo{}, errors.Wrap(err, "auth client error: ")
+		return domain.CookieInfo{}, errors.Wrap(err, "auth client error")
 	}
 
 	if client.httpsOn { // if https is on, we can use secure cookies
@@ -58,7 +58,7 @@ func (client *AuthClient) SearchCookieByValue(ctx context.Context, cookieValue s
 		if strings.Contains(err.Error(), authdomain.CookieNotFoundError.Error()) {
 			return domain.CookieInfo{}, domain.ErrCookieNotFound
 		}
-		return domain.CookieInfo{}, errors.Wrap(err, "auth client error: ")
+		return domain.CookieInfo{}, errors.Wrap(err, "auth client error")
 	}
 
 	cookie = domain.ToCookieInfo(pbCookie, true, true, http.SameSiteDefaultMode) // TODO: move settings to constants
@@ -73,7 +73,7 @@ func (client *AuthClient) SearchCookieByUserID(ctx context.Context, userID uint6
 		if strings.Contains(err.Error(), authdomain.CookieNotFoundError.Error()) {
 			return domain.CookieInfo{}, domain.ErrCookieNotFound
 		}
-		return domain.CookieInfo{}, errors.Wrap(err, "auth client error: ")
+		return domain.CookieInfo{}, errors.Wrap(err, "auth client error")
 	}
 
 	cookie = domain.ToCookieInfo(pbCookie, true, true, http.SameSiteDefaultMode) // TODO: move settings to constants
@@ -87,7 +87,7 @@ func (client *AuthClient) LogoutUser(ctx context.Context, cookieValue string) er
 		if strings.Contains(err.Error(), authdomain.CookieNotFoundError.Error()) {
 			return domain.ErrCookieNotFound
 		}
-		return errors.Wrap(err, "auth client error: ")
+		return errors.Wrap(err, "auth client error")
 	}
 
 	return nil
@@ -102,7 +102,7 @@ func (client *AuthClient) ChangeCredentials(ctx context.Context, userID uint64, 
 		})
 
 	if err != nil {
-		return errors.Wrap(err, "auth client error: ")
+		return errors.Wrap(err, "auth client error")
 	}
 
 	return nil
