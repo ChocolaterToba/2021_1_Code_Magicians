@@ -104,6 +104,7 @@ func (facade *ProfileFacade) EditUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return
 }
 
 // GetUserByID recieves user data from user service. E-mail gets hidden for personal data protection

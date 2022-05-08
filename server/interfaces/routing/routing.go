@@ -63,6 +63,7 @@ func CreateRouter(authClient authclient.AuthClientInterface,
 	r.HandleFunc("/api/cart/add/{id:[0-9]+}", mid.AuthMid(productFacade.AddToCart, authClient)).Methods("POST")
 	r.HandleFunc("/api/cart/remove/{id:[0-9]+}", mid.AuthMid(productFacade.RemoveFromCart, authClient)).Methods("POST")
 	r.HandleFunc("/api/cart", mid.AuthMid(productFacade.GetCart, authClient)).Methods("GET")
+	r.HandleFunc("/api/cart/complete", mid.AuthMid(productFacade.CompleteCart, authClient)).Methods("POST")
 
 	if csrfOn {
 		r.HandleFunc("/api/csrf", func(w http.ResponseWriter, r *http.Request) { // Is used only for getting csrf key

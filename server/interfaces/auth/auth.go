@@ -53,6 +53,7 @@ func (facade *AuthFacade) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, cookieInfo.Cookie)
 	w.WriteHeader(http.StatusNoContent)
+	return
 }
 
 // LogoutUser logs current user out of their session
@@ -72,6 +73,7 @@ func (facade *AuthFacade) LogoutUser(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, userCookie.Cookie)
 
 	w.WriteHeader(http.StatusNoContent)
+	return
 }
 
 // CheckUser checks if current user is logged in
@@ -83,6 +85,7 @@ func (facade *AuthFacade) CheckUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return
 }
 
 // ChangeCredentials changes user's username and/or password
@@ -104,4 +107,5 @@ func (facade *AuthFacade) ChangeCredentials(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return
 }

@@ -214,11 +214,13 @@ func (app *ProductApp) CompleteCart(ctx context.Context, userID uint64) (err err
 		return err
 	}
 
-	fmt.Println("Тут мы якобы шлём письмо, что к нам поступил такой-то заказ")
-	fmt.Println(cart)
-
 	if len(cart) == 0 {
 		return domain.CartEmptyError
+	}
+
+	fmt.Println("Тут мы якобы шлём письмо, что к нам поступил такой-то заказ, это происходит в отдельной горутине")
+	for key := range cart {
+		fmt.Printf("id товара %d, количество %d\n", key, cart[key])
 	}
 
 	return app.repo.UpdateCart(ctx, userID, make(map[uint64]uint64)) // emptying existing cart

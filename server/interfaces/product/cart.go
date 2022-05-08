@@ -42,6 +42,7 @@ func (facade *ProductFacade) AddToCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return
 }
 
 // RemoveFromCart removes product with passed productID from current user's cart
@@ -75,6 +76,7 @@ func (facade *ProductFacade) RemoveFromCart(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return
 }
 
 // GetCart returns current user's cart as slice of products and their order amounts
@@ -106,5 +108,26 @@ func (facade *ProductFacade) GetCart(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(responseBody)
+	return
+}
+
+// CompleteCart sends user's cart to manager and clears it
+func (facade *ProductFacade) CompleteCart(w http.ResponseWriter, r *http.Request) {
+	cookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
+
+	err := facade.productClient.CompleteCart(context.Background(), cookie.UserID)
+
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		switch err {
+		case domain.ErrCartEmpty:
+			w.WriteHeader(http.StatusForbidden)
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 	return
 }
