@@ -151,11 +151,11 @@ func (client *ProductClient) RemoveFromCart(ctx context.Context, userID uint64, 
 	})
 
 	if err != nil {
-		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
-			return domain.ErrProductNotFound
-		}
 		if strings.Contains(err.Error(), productdomain.ProductNotFoundInCartError.Error()) {
 			return domain.ErrProductNotFoundInCart
+		}
+		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
+			return domain.ErrProductNotFound
 		}
 		return errors.Wrap(err, "product client error")
 	}

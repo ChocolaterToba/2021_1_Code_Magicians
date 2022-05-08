@@ -165,7 +165,7 @@ func (app *ProductApp) RemoveFromCart(ctx context.Context, userID uint64, produc
 			return err
 		}
 
-		cart = make(map[uint64]uint64) // emptying cart just in case
+		return domain.ProductNotFoundInCartError // can't remove product from newly created cart
 	}
 
 	// check if product exists
