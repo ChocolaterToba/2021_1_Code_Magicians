@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"pinterest/domain"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
@@ -126,6 +127,45 @@ func (facade *ProductFacade) GetProductByID(w http.ResponseWriter, r *http.Reque
 
 // Get Products returns product with page offset and size specified in request
 func (facade *ProductFacade) GetProducts(w http.ResponseWriter, r *http.Request) {
+	productIDs := make([]uint64, 0)
+	err := json.NewDecoder(r.Body).Decode(productIDs)
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	products, err := facade.productClient.GetProductsByIDs(context.Background(), productIDs)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	productOutputs := domain.ToProductOutputs(products)
+	responseBody, err := json.Marshal(productOutputs)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseBody)
+	return
+}
+
+// GetProductsFeed returns product feed with page offset and size specified in request
+func (facade *ProductFacade) GetProductsFeed(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 
 	pageOffsetString := queryParams.Get(string(domain.PageOffsetKey))

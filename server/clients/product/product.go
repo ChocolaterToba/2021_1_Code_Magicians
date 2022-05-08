@@ -17,6 +17,7 @@ type ProductClientInterface interface {
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	EditProduct(ctx context.Context, product domain.Product) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
+	GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error)
 	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error)
 	AddToCart(ctx context.Context, userID uint64, productID uint64) (err error)
 	RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error)
@@ -98,6 +99,18 @@ func (client *ProductClient) GetProductByID(ctx context.Context, id uint64) (pro
 	}
 
 	return domain.ToProduct(pbProduct), nil
+}
+
+func (client *ProductClient) GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error) {
+	pbProducts, err := client.productClient.GetProductsByIDs(ctx, &productproto.GetProductsByIDsRequest{Ids: ids})
+	if err != nil {
+		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
+			return nil, err // We return "raw" err here so that it can be given to client later
+		}
+		return nil, errors.Wrap(err, "product client error: ")
+	}
+
+	return domain.ToProducts(pbProducts.Products), nil
 }
 
 func (client *ProductClient) GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error) {

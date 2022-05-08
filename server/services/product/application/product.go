@@ -2,11 +2,12 @@ package application
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"pinterest/services/product/domain"
 	repository "pinterest/services/product/infrastructure"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type ProductAppInterface interface {
@@ -113,7 +114,7 @@ func (app *ProductApp) GetProductsByIDs(ctx context.Context, ids []uint64) (prod
 		for _, id := range notFoundProducts {
 			notFoundProductsStrings = append(notFoundProductsStrings, fmt.Sprintf("продукт с id %d не найден", id))
 		}
-		return nil, errors.New(strings.Join(notFoundProductsStrings, ", "))
+		return nil, errors.Wrap(errors.New(strings.Join(notFoundProductsStrings, ", ")), domain.ProductNotFoundError.Error())
 	}
 
 	return products, nil

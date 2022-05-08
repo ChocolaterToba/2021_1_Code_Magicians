@@ -58,6 +58,7 @@ func CreateRouter(authClient authclient.AuthClientInterface,
 	r.HandleFunc("/api/product/{id:[0-9]+}", productFacade.GetProductByID).Methods("GET")
 
 	r.HandleFunc("/api/products", productFacade.GetProducts).Methods("GET")
+	r.HandleFunc("/api/products/feed", productFacade.GetProductsFeed).Methods("GET")
 
 	r.HandleFunc("/api/cart/add/{id:[0-9]+}", mid.AuthMid(productFacade.AddToCart, authClient)).Methods("POST")
 
