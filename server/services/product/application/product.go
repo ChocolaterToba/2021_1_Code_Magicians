@@ -88,6 +88,10 @@ func (app *ProductApp) GetProductByID(ctx context.Context, id uint64) (product d
 }
 
 func (app *ProductApp) GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
 	dbProducts, err := app.repo.GetProductsByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
@@ -179,6 +183,9 @@ func (app *ProductApp) RemoveFromCart(ctx context.Context, userID uint64, produc
 	}
 
 	cart[productID] = cart[productID] - 1
+	if cart[productID] == 0 {
+		delete(cart, productID)
+	}
 	return app.repo.UpdateCart(ctx, userID, cart)
 }
 

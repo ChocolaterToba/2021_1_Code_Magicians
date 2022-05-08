@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	authclient "pinterest/clients/auth"
 	"pinterest/domain"
@@ -51,8 +50,6 @@ func (facade *AuthFacade) LoginUser(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	fmt.Println(cookieInfo.Cookie)
 
 	http.SetCookie(w, cookieInfo.Cookie)
 	w.WriteHeader(http.StatusNoContent)

@@ -156,7 +156,7 @@ func (facade *ProductFacade) RemoveFromCart(ctx context.Context, in *pb.RemoveFr
 func (facade *ProductFacade) GetCart(ctx context.Context, in *pb.GetCartRequest) (*pb.GetCartResponse, error) {
 	cart, err := facade.app.GetCart(ctx, in.GetUserId())
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get cart:")
+		return nil, errors.Wrap(err, "Could not get cart")
 	}
 
 	productIds := make([]uint64, 0) // is needed because batch-getting products is faster than one-by-one solution
@@ -166,10 +166,10 @@ func (facade *ProductFacade) GetCart(ctx context.Context, in *pb.GetCartRequest)
 
 	products, err := facade.app.GetProductsByIDs(ctx, productIds)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get cart:")
+		return nil, errors.Wrap(err, "Could not get products for cart")
 	}
 
-	result := make([]*pb.ProductWithQuantity, len(products))
+	result := make([]*pb.ProductWithQuantity, 0, len(products))
 	for _, product := range products {
 		result = append(result, &pb.ProductWithQuantity{
 			Product:  domain.ToPbProduct(product),

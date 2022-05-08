@@ -2,6 +2,7 @@ package profile
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"pinterest/domain"
 	"strconv"
@@ -74,4 +75,36 @@ func (facade *ProductFacade) RemoveFromCart(w http.ResponseWriter, r *http.Reque
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetCart returns current user's cart as slice of products and their order amounts
+func (facade *ProductFacade) GetCart(w http.ResponseWriter, r *http.Request) {
+	cookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
+
+	cart, err := facade.productClient.GetCart(context.Background(), cookie.UserID)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if cart == nil {
+		cart = make([]domain.ProductWithQuantity, 0) // so that cart marshalls as  "[]", not "null"
+	}
+
+	responseBody, err := json.Marshal(cart)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseBody)
+	return
 }
