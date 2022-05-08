@@ -31,7 +31,7 @@ func (client *UserClient) CreateUser(ctx context.Context, user domain.User) (use
 	pbUserID, err := client.userClient.CreateUser(ctx, domain.ToPbUserReg(user))
 
 	if err != nil {
-		return 0, errors.Wrap(err, "user client error: ")
+		return 0, errors.Wrap(err, "user client error")
 	}
 
 	return pbUserID.GetUid(), nil
@@ -44,7 +44,7 @@ func (client *UserClient) EditUser(ctx context.Context, user domain.User) (err e
 		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
 			return domain.ErrUserNotFound
 		}
-		return errors.Wrap(err, "user client error: ")
+		return errors.Wrap(err, "user client error")
 	}
 
 	return nil
@@ -57,7 +57,7 @@ func (client *UserClient) GetUserByID(ctx context.Context, userID uint64) (user 
 		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
 			return domain.User{}, domain.ErrUserNotFound
 		}
-		return domain.User{}, errors.Wrap(err, "user client error: ")
+		return domain.User{}, errors.Wrap(err, "user client error")
 	}
 
 	return domain.ToUser(pbUser), nil
@@ -70,7 +70,7 @@ func (client *UserClient) GetUserByUsername(ctx context.Context, username string
 		if strings.Contains(err.Error(), userdomain.UserNotFoundError.Error()) {
 			return domain.User{}, domain.ErrUserNotFound
 		}
-		return domain.User{}, errors.Wrap(err, "user client error: ")
+		return domain.User{}, errors.Wrap(err, "user client error")
 	}
 
 	return domain.ToUser(pbUser), nil
@@ -80,7 +80,7 @@ func (client *UserClient) GetUsers(ctx context.Context) (users []domain.User, er
 	pbUsers, err := client.userClient.GetUsers(ctx, &userproto.Empty{})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "user client error: ")
+		return nil, errors.Wrap(err, "user client error")
 	}
 
 	return domain.ToUsers(pbUsers.Users), nil

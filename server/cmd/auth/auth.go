@@ -72,13 +72,13 @@ func runService(addr string) {
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalln("Listen auth error: ", err)
+		log.Fatalln("Listen auth error", err)
 	}
 
 	fmt.Printf("Starting server at localhost%s\n", addr)
 	err = server.Serve(lis)
 	if err != nil {
-		log.Fatalln("Serve auth error: ", err)
+		log.Fatalln("Serve auth error", err)
 	}
 }
 

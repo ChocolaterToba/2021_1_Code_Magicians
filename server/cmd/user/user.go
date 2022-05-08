@@ -72,13 +72,13 @@ func runService(addr string) {
 
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalln("Listen user error: ", err)
+		log.Fatalln("Listen user error", err)
 	}
 
 	fmt.Printf("Starting server at localhost%s\n", addr)
 	err = server.Serve(lis)
 	if err != nil {
-		log.Fatalln("Serve user error: ", err)
+		log.Fatalln("Serve user error", err)
 	}
 }
 

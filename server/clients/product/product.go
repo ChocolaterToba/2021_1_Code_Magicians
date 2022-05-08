@@ -39,7 +39,7 @@ func (client *ProductClient) CreateShop(ctx context.Context, shop domain.Shop) (
 	pbShopID, err := client.productClient.CreateShop(ctx, domain.ToPbCreateShopRequest(shop))
 
 	if err != nil {
-		return 0, errors.Wrap(err, "product client error: ")
+		return 0, errors.Wrap(err, "product client error")
 	}
 
 	return pbShopID.Id, nil
@@ -52,7 +52,7 @@ func (client *ProductClient) EditShop(ctx context.Context, shop domain.Shop) (er
 		if strings.Contains(err.Error(), productdomain.ShopNotFoundError.Error()) {
 			return domain.ErrShopNotFound
 		}
-		return errors.Wrap(err, "product client error: ")
+		return errors.Wrap(err, "product client error")
 	}
 
 	return nil
@@ -62,7 +62,7 @@ func (client *ProductClient) GetShopByID(ctx context.Context, id uint64) (shop d
 	pbShop, err := client.productClient.GetShopByID(ctx, &productproto.GetShopRequest{Id: id})
 
 	if err != nil {
-		return domain.Shop{}, errors.Wrap(err, "product client error: ")
+		return domain.Shop{}, errors.Wrap(err, "product client error")
 	}
 
 	return domain.ToShop(pbShop), nil
@@ -72,7 +72,7 @@ func (client *ProductClient) CreateProduct(ctx context.Context, product domain.P
 	pbProductID, err := client.productClient.CreateProduct(ctx, domain.ToPbCreateProductRequest(product))
 
 	if err != nil {
-		return 0, errors.Wrap(err, "product client error: ")
+		return 0, errors.Wrap(err, "product client error")
 	}
 
 	return pbProductID.Id, nil
@@ -85,7 +85,7 @@ func (client *ProductClient) EditProduct(ctx context.Context, product domain.Pro
 		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
 			return domain.ErrProductNotFound
 		}
-		return errors.Wrap(err, "product client error: ")
+		return errors.Wrap(err, "product client error")
 	}
 
 	return nil
@@ -95,7 +95,7 @@ func (client *ProductClient) GetProductByID(ctx context.Context, id uint64) (pro
 	pbProduct, err := client.productClient.GetProductByID(ctx, &productproto.GetProductRequest{Id: id})
 
 	if err != nil {
-		return domain.Product{}, errors.Wrap(err, "product client error: ")
+		return domain.Product{}, errors.Wrap(err, "product client error")
 	}
 
 	return domain.ToProduct(pbProduct), nil
@@ -107,7 +107,7 @@ func (client *ProductClient) GetProductsByIDs(ctx context.Context, ids []uint64)
 		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
 			return nil, err // We return "raw" err here so that it can be given to client later
 		}
-		return nil, errors.Wrap(err, "product client error: ")
+		return nil, errors.Wrap(err, "product client error")
 	}
 
 	return domain.ToProducts(pbProducts.Products), nil
@@ -122,7 +122,7 @@ func (client *ProductClient) GetProducts(ctx context.Context, pageOffset uint64,
 		})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "product client error: ")
+		return nil, errors.Wrap(err, "product client error")
 	}
 
 	return domain.ToProducts(pbProducts.Products), nil
@@ -138,7 +138,7 @@ func (client *ProductClient) AddToCart(ctx context.Context, userID uint64, produ
 		if strings.Contains(err.Error(), productdomain.ProductNotFoundError.Error()) {
 			return domain.ErrProductNotFound
 		}
-		return errors.Wrap(err, "product client error: ")
+		return errors.Wrap(err, "product client error")
 	}
 
 	return nil
@@ -157,7 +157,7 @@ func (client *ProductClient) RemoveFromCart(ctx context.Context, userID uint64, 
 		if strings.Contains(err.Error(), productdomain.ProductNotFoundInCartError.Error()) {
 			return domain.ErrProductNotFoundInCart
 		}
-		return errors.Wrap(err, "product client error: ")
+		return errors.Wrap(err, "product client error")
 	}
 
 	return nil
@@ -169,7 +169,7 @@ func (client *ProductClient) GetCart(ctx context.Context, userID uint64) (cart [
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "product client error: ")
+		return nil, errors.Wrap(err, "product client error")
 	}
 
 	cart = make([]domain.ProductWithQuantity, 0, len(pbCart.Products))
@@ -189,7 +189,7 @@ func (client *ProductClient) CompleteCart(ctx context.Context, userID uint64) (e
 		if strings.Contains(err.Error(), productdomain.CartEmptyError.Error()) {
 			return domain.ErrCartEmpty
 		}
-		return errors.Wrap(err, "product client error: ")
+		return errors.Wrap(err, "product client error")
 	}
 
 	return nil
