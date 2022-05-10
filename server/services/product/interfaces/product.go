@@ -5,6 +5,7 @@ import (
 	"pinterest/services/product/application"
 	"pinterest/services/product/domain"
 	pb "pinterest/services/product/proto"
+	"time"
 
 	"github.com/pkg/errors"
 	_ "google.golang.org/grpc"
@@ -30,7 +31,7 @@ func (facade *ProductFacade) CreateShop(ctx context.Context, in *pb.CreateShopRe
 
 	shopID, err := facade.app.CreateShop(ctx, shopInput)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not create shop:")
+		return nil, errors.Wrap(err, "Could not create shop")
 	}
 
 	return &pb.CreateShopResponse{Id: shopID}, nil
@@ -46,7 +47,7 @@ func (facade *ProductFacade) EditShop(ctx context.Context, in *pb.EditShopReques
 
 	err := facade.app.EditShop(ctx, shopInput)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not edit shop:")
+		return nil, errors.Wrap(err, "Could not edit shop")
 	}
 
 	return &pb.Empty{}, nil
@@ -55,7 +56,7 @@ func (facade *ProductFacade) EditShop(ctx context.Context, in *pb.EditShopReques
 func (facade *ProductFacade) GetShopByID(ctx context.Context, in *pb.GetShopRequest) (*pb.Shop, error) {
 	shop, err := facade.app.GetShopByID(ctx, in.GetId())
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get shop:")
+		return nil, errors.Wrap(err, "Could not get shop")
 	}
 
 	return domain.ToPbShop(shop), nil
@@ -77,7 +78,7 @@ func (facade *ProductFacade) CreateProduct(ctx context.Context, in *pb.CreatePro
 
 	productID, err := facade.app.CreateProduct(ctx, productInput)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not create product:")
+		return nil, errors.Wrap(err, "Could not create product")
 	}
 
 	return &pb.CreateProductResponse{Id: productID}, nil
@@ -99,7 +100,7 @@ func (facade *ProductFacade) EditProduct(ctx context.Context, in *pb.EditProduct
 
 	err := facade.app.EditProduct(ctx, productInput)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not edit product:")
+		return nil, errors.Wrap(err, "Could not edit product")
 	}
 
 	return &pb.Empty{}, nil
@@ -107,7 +108,7 @@ func (facade *ProductFacade) EditProduct(ctx context.Context, in *pb.EditProduct
 func (facade *ProductFacade) GetProductByID(ctx context.Context, in *pb.GetProductRequest) (*pb.Product, error) {
 	product, err := facade.app.GetProductByID(ctx, in.GetId())
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get product:")
+		return nil, errors.Wrap(err, "Could not get product")
 	}
 
 	return domain.ToPbProduct(product), nil
@@ -116,7 +117,7 @@ func (facade *ProductFacade) GetProductByID(ctx context.Context, in *pb.GetProdu
 func (facade *ProductFacade) GetProductsByIDs(ctx context.Context, in *pb.GetProductsByIDsRequest) (*pb.GetProductsResponse, error) {
 	products, err := facade.app.GetProductsByIDs(ctx, in.GetIds())
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get products:")
+		return nil, errors.Wrap(err, "Could not get products")
 	}
 
 	return &pb.GetProductsResponse{
@@ -127,7 +128,7 @@ func (facade *ProductFacade) GetProductsByIDs(ctx context.Context, in *pb.GetPro
 func (facade *ProductFacade) GetProducts(ctx context.Context, in *pb.GetProductsRequest) (*pb.GetProductsResponse, error) {
 	products, err := facade.app.GetProducts(ctx, in.GetPageOffset(), in.GetPageSize(), in.GetCategory())
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not get products:")
+		return nil, errors.Wrap(err, "Could not get products")
 	}
 
 	return &pb.GetProductsResponse{
@@ -138,7 +139,7 @@ func (facade *ProductFacade) GetProducts(ctx context.Context, in *pb.GetProducts
 func (facade *ProductFacade) AddToCart(ctx context.Context, in *pb.AddToCartRequest) (*pb.Empty, error) {
 	err := facade.app.AddToCart(ctx, in.GetUserId(), in.GetProductId())
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not add product to cart:")
+		return nil, errors.Wrap(err, "Could not add product to cart")
 	}
 
 	return &pb.Empty{}, nil
@@ -147,7 +148,7 @@ func (facade *ProductFacade) AddToCart(ctx context.Context, in *pb.AddToCartRequ
 func (facade *ProductFacade) RemoveFromCart(ctx context.Context, in *pb.RemoveFromCartRequest) (*pb.Empty, error) {
 	err := facade.app.RemoveFromCart(ctx, in.GetUserId(), in.GetProductId())
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not remove product from cart:")
+		return nil, errors.Wrap(err, "Could not remove product from cart")
 	}
 
 	return &pb.Empty{}, nil
@@ -178,15 +179,74 @@ func (facade *ProductFacade) GetCart(ctx context.Context, in *pb.GetCartRequest)
 	}
 
 	return &pb.GetCartResponse{
-		Products: result,
+		Products: domain.ToPbProductsWithQuantity(cart, products),
 	}, nil
 }
 
 func (facade *ProductFacade) CompleteCart(ctx context.Context, in *pb.CompleteCartRequest) (*pb.Empty, error) {
-	err := facade.app.CompleteCart(ctx, in.GetUserId())
+	order := domain.Order{
+		Id:              0,
+		UserID:          in.GetUserId(),
+		Items:           map[uint64]uint64{},
+		CreatedAt:       time.Now(),
+		TotalPrice:      0,
+		PickUp:          in.GetPickUp(),
+		DeliveryAddress: in.GetDeliveryAddress(),
+		PaymentMethod:   in.GetPaymentMethod(),
+		CallNeeded:      in.GetCallNeeded(),
+		Status:          "",
+	}
+	err := facade.app.CompleteCart(ctx, order)
 	if err != nil {
-		return nil, errors.Wrap(err, "Could not complete cart:")
+		return nil, errors.Wrap(err, "Could not complete cart")
 	}
 
 	return &pb.Empty{}, nil
+}
+
+func (facade *ProductFacade) GetOrderByID(ctx context.Context, in *pb.GetOrderByIDRequest) (*pb.Order, error) {
+	order, err := facade.app.GetOrderByID(ctx, in.GetUserId(), in.GetOrderId())
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not get order by id")
+	}
+
+	productIds := make([]uint64, 0) // is needed because batch-getting products is faster than one-by-one solution
+	for id := range order.Items {
+		productIds = append(productIds, id)
+	}
+
+	products, err := facade.app.GetProductsByIDs(ctx, productIds)
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not get products for order")
+	}
+
+	return domain.ToPbOrder(order, products), nil
+}
+
+func (facade *ProductFacade) GetOrders(ctx context.Context, in *pb.GetOrdersRequest) (*pb.GetOrdersResponse, error) {
+	orders, err := facade.app.GetOrdersByUserID(ctx, in.GetUserId())
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not get user's orders")
+	}
+
+	productIdsSet := make(map[uint64]bool)
+	for _, order := range orders {
+		for id := range order.Items {
+			productIdsSet[id] = true
+		}
+	}
+
+	productIds := make([]uint64, 0, len(productIdsSet)) // is needed because batch-getting products is faster than one-by-one solution
+	for id := range productIdsSet {
+		productIds = append(productIds, id)
+	}
+
+	products, err := facade.app.GetProductsByIDs(ctx, productIds)
+	if err != nil {
+		return nil, errors.Wrap(err, "Could not get products for order")
+	}
+
+	return &pb.GetOrdersResponse{
+		Orders: domain.ToPbOrders(orders, products),
+	}, nil
 }

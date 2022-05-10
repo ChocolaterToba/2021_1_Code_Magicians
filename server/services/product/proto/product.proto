@@ -5,6 +5,7 @@ syntax = "proto3";
 
 option go_package = "pinterest/services/product/proto";
 
+import "google/protobuf/timestamp.proto";
 
 package product;
 
@@ -124,6 +125,36 @@ message GetCartResponse {
 
 message CompleteCartRequest {
   uint64 user_id = 1;
+  bool pick_up = 2; // false means delivery
+  string delivery_address = 3;
+  string payment_method = 4;
+  bool call_needed = 5;
+  string status = 6;
+}
+
+message Order {
+  uint64 id = 1;
+  repeated ProductWithQuantity items = 2;
+  google.protobuf.Timestamp created_at = 3;
+  uint64 total_price = 4;
+  bool pick_up = 5; // false means delivery
+  string delivery_address = 6;
+  string payment_method = 7;
+  bool call_needed = 8;
+  string status = 9;
+}
+
+message GetOrderByIDRequest {
+  uint64 order_id = 1;
+  uint64 user_id = 2; // to check if order belongs to user
+}
+
+message GetOrdersRequest {
+  uint64 user_id = 1;
+}
+
+message GetOrdersResponse {
+  repeated Order orders = 1;
 }
 
 message Empty {}
@@ -141,4 +172,6 @@ service ProductService {
   rpc   RemoveFromCart(RemoveFromCartRequest) returns (Empty) {}
   rpc   GetCart(GetCartRequest) returns (GetCartResponse) {}
   rpc   CompleteCart(CompleteCartRequest) returns (Empty) {}
+  rpc   GetOrderByID(GetOrderByIDRequest) returns (Order) {}
+  rpc   GetOrders(GetOrdersRequest) returns (GetOrdersResponse) {}
 }

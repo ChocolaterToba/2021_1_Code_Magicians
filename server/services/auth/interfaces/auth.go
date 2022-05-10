@@ -24,7 +24,7 @@ func NewAuthFacade(app application.AuthAppInterface) *AuthFacade {
 func (facade *AuthFacade) LoginUser(ctx context.Context, in *pb.UserAuth) (*pb.CookieInfo, error) {
 	cookieInfo, err := facade.app.LoginUser(ctx, in.GetUsername(), in.GetPassword())
 	if err != nil {
-		return &pb.CookieInfo{}, errors.Wrap(err, "Could not login user credentials:")
+		return &pb.CookieInfo{}, errors.Wrap(err, "Could not login user credentials")
 	}
 
 	return domain.ToPbCookieInfo(cookieInfo), nil
@@ -33,7 +33,7 @@ func (facade *AuthFacade) LoginUser(ctx context.Context, in *pb.UserAuth) (*pb.C
 func (facade *AuthFacade) SearchCookieByValue(ctx context.Context, in *pb.CookieValue) (*pb.CookieInfo, error) {
 	result, err := facade.app.SearchCookieByValue(ctx, in.GetCookieValue())
 	if err != nil {
-		return &pb.CookieInfo{}, errors.Wrap(err, "Could not find cookie by value:")
+		return &pb.CookieInfo{}, errors.Wrap(err, "Could not find cookie by value")
 	}
 
 	return domain.ToPbCookieInfo(result), nil
@@ -42,7 +42,7 @@ func (facade *AuthFacade) SearchCookieByValue(ctx context.Context, in *pb.Cookie
 func (facade *AuthFacade) SearchCookieByUserID(ctx context.Context, in *pb.UserID) (*pb.CookieInfo, error) {
 	result, err := facade.app.SearchCookieByUserID(ctx, in.GetUid())
 	if err != nil {
-		return &pb.CookieInfo{}, errors.Wrap(err, "Could not find cookie by user id:")
+		return &pb.CookieInfo{}, errors.Wrap(err, "Could not find cookie by user id")
 	}
 
 	return domain.ToPbCookieInfo(result), nil
@@ -51,7 +51,7 @@ func (facade *AuthFacade) SearchCookieByUserID(ctx context.Context, in *pb.UserI
 func (facade *AuthFacade) LogoutUser(ctx context.Context, in *pb.CookieValue) (*pb.Empty, error) {
 	err := facade.app.LogoutUser(ctx, in.GetCookieValue())
 	if err != nil {
-		return &pb.Empty{}, errors.Wrap(err, "Could not check user credentials:")
+		return &pb.Empty{}, errors.Wrap(err, "Could not check user credentials")
 	}
 
 	return &pb.Empty{}, nil
@@ -60,7 +60,7 @@ func (facade *AuthFacade) LogoutUser(ctx context.Context, in *pb.CookieValue) (*
 func (facade *AuthFacade) ChangeCredentials(ctx context.Context, in *pb.Credentials) (*pb.Empty, error) {
 	err := facade.app.ChangeCredentials(ctx, in.GetUserID(), in.GetUsername(), in.GetPassword())
 	if err != nil {
-		return &pb.Empty{}, errors.Wrap(err, "Could not change user credentials:")
+		return &pb.Empty{}, errors.Wrap(err, "Could not change user credentials")
 	}
 
 	return &pb.Empty{}, nil

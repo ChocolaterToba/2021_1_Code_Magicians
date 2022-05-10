@@ -22,7 +22,9 @@ type ProductAppInterface interface {
 	AddToCart(ctx context.Context, userID uint64, productID uint64) (err error)
 	RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error)
 	GetCart(ctx context.Context, userID uint64) (cart map[uint64]uint64, err error)
-	CompleteCart(ctx context.Context, userID uint64) (err error)
+	CompleteCart(ctx context.Context, orderBillet domain.Order) (err error)
+	GetOrderByID(ctx context.Context, userID uint64, orderID uint64) (order domain.Order, err error)
+	GetOrdersByUserID(ctx context.Context, userID uint64) (orders []domain.Order, err error)
 }
 
 type ProductApp struct {
@@ -208,8 +210,8 @@ func (app *ProductApp) GetCart(ctx context.Context, userID uint64) (cart map[uin
 	return cart, nil
 }
 
-func (app *ProductApp) CompleteCart(ctx context.Context, userID uint64) (err error) {
-	cart, err := app.repo.GetCart(ctx, userID)
+func (app *ProductApp) CompleteCart(ctx context.Context, orderBillet domain.Order) (err error) {
+	cart, err := app.repo.GetCart(ctx, orderBillet.UserID)
 	if err != nil {
 		return err
 	}
@@ -218,12 +220,57 @@ func (app *ProductApp) CompleteCart(ctx context.Context, userID uint64) (err err
 		return domain.CartEmptyError
 	}
 
+	orderBillet.Items = cart
+
+	productIDs := make([]uint64, len(cart))
+	for id := range cart {
+		productIDs = append(productIDs, id)
+	}
+
+	products, err := app.repo.GetProductsByIDs(ctx, productIDs)
+	if err != nil {
+		return err
+	}
+
+	for _, product := range products {
+		orderBillet.TotalPrice = product.Price * cart[product.Id]
+	}
+
+	orderBillet.Status = domain.StatusOrderCreated
+
 	fmt.Println("Тут мы якобы шлём письмо, что к нам поступил такой-то заказ, это происходит в отдельной горутине")
 	for key := range cart {
 		fmt.Printf("id товара %d, количество %d\n", key, cart[key])
 	}
 
-	return app.repo.UpdateCart(ctx, userID, make(map[uint64]uint64)) // emptying existing cart
+	err = app.repo.UpdateCart(ctx, orderBillet.UserID, make(map[uint64]uint64)) // emptying existing cart
+	if err != nil {
+		return err
+	}
+
+	_, err = app.repo.CreateOrder(ctx, orderBillet)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (app *ProductApp) GetOrderByID(ctx context.Context, userID uint64, orderID uint64) (order domain.Order, err error) {
+	order, err = app.repo.GetOrderByID(ctx, orderID)
+	if err != nil {
+		return domain.Order{}, err
+	}
+
+	if order.UserID != userID {
+		return domain.Order{}, domain.ForeignOrderError
+	}
+
+	return order, nil
+}
+
+func (app *ProductApp) GetOrdersByUserID(ctx context.Context, userID uint64) (orders []domain.Order, err error) {
+	return app.repo.GetOrdersByUserID(ctx, userID)
 }
 
 func replaceStringIfNotEmpty(original string, replacement string) (result string) {

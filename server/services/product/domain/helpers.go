@@ -2,6 +2,8 @@ package domain
 
 import (
 	pb "pinterest/services/product/proto"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func ToShop(pbShop *pb.Shop) Shop {
@@ -63,6 +65,44 @@ func ToPbProducts(products []Product) []*pb.Product {
 
 	for _, product := range products {
 		result = append(result, ToPbProduct(product))
+	}
+
+	return result
+}
+
+func ToPbProductsWithQuantity(cart map[uint64]uint64, products []Product) []*pb.ProductWithQuantity {
+	result := make([]*pb.ProductWithQuantity, 0, len(products))
+	for _, product := range products {
+		if cart[product.Id] > 0 { // products slice may contain excessive products
+			result = append(result, &pb.ProductWithQuantity{
+				Product:  ToPbProduct(product),
+				Quantity: cart[product.Id],
+			})
+		}
+	}
+
+	return result
+}
+
+func ToPbOrder(order Order, products []Product) *pb.Order {
+	return &pb.Order{
+		Id:              order.Id,
+		Items:           ToPbProductsWithQuantity(order.Items, products),
+		CreatedAt:       timestamppb.New(order.CreatedAt),
+		TotalPrice:      order.TotalPrice,
+		PickUp:          order.PickUp,
+		DeliveryAddress: order.DeliveryAddress,
+		PaymentMethod:   order.PaymentMethod,
+		CallNeeded:      order.CallNeeded,
+		Status:          order.Status,
+	}
+}
+
+func ToPbOrders(orders []Order, products []Product) []*pb.Order {
+	result := make([]*pb.Order, 0, len(orders))
+
+	for _, order := range orders {
+		result = append(result, ToPbOrder(order, products))
 	}
 
 	return result

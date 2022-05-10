@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type Shop struct {
 	Id          uint64
 	Title       string
@@ -22,4 +24,17 @@ type Product struct {
 	ImageLinks   []string
 	VideoLink    string
 	ShopId       uint64
+}
+
+type Order struct {
+	Id              uint64
+	UserID          uint64
+	Items           map[uint64]uint64
+	CreatedAt       time.Time
+	TotalPrice      uint64
+	PickUp          bool
+	DeliveryAddress string
+	PaymentMethod   string
+	CallNeeded      bool
+	Status          string
 }

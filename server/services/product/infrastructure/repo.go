@@ -19,6 +19,9 @@ type ProductRepoInterface interface {
 	CreateCart(ctx context.Context, userID uint64) (id uint64, err error)
 	GetCart(ctx context.Context, userID uint64) (cart map[uint64]uint64, err error)
 	UpdateCart(ctx context.Context, userID uint64, cart map[uint64]uint64) (err error)
+	CreateOrder(ctx context.Context, order domain.Order) (id uint64, err error)
+	GetOrderByID(ctx context.Context, id uint64) (order domain.Order, err error)
+	GetOrdersByUserID(ctx context.Context, userID uint64) (orders []domain.Order, err error)
 }
 
 type ProductRepo struct {
