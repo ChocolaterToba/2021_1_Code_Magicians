@@ -77,7 +77,8 @@ func (repo *ProductRepo) GetOrdersByUserID(ctx context.Context, userID uint64) (
 	getOrdersByUserIDQuery := `SELECT id, user_id, items, created_at, total_price, pick_up, 
 							   delivery_address, payment_method, call_needed, status
 							   FROM orders
-							   WHERE user_id = $1`
+							   WHERE user_id = $1
+							   ORDER BY created_at DESC`
 
 	rows, err := tx.Query(ctx, getOrdersByUserIDQuery, userID)
 	if err != nil {

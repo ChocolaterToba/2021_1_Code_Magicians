@@ -210,7 +210,7 @@ func (client *ProductClient) GetOrderByID(ctx context.Context, userID uint64, or
 			return domain.Order{}, domain.ErrOrderNotFound
 		}
 
-		return domain.Order{}, nil
+		return domain.Order{}, err
 	}
 
 	return domain.ToOrder(pbOrder), nil
