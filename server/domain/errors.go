@@ -11,5 +11,6 @@ var (
 	ErrCartNotFound          = errors.New("Cart not found")
 	ErrProductNotFoundInCart = errors.New("Product not found in cart")
 	ErrCartEmpty             = errors.New("Cart is empty")
+	ErrOrderNotFound         = errors.New("Order not found")
 	ErrForeignOrder          = errors.New("Order belongs to another user")
 )

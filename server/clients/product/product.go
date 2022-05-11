@@ -206,6 +206,9 @@ func (client *ProductClient) GetOrderByID(ctx context.Context, userID uint64, or
 		if strings.Contains(err.Error(), productdomain.ForeignOrderError.Error()) {
 			return domain.Order{}, domain.ErrForeignOrder
 		}
+		if strings.Contains(err.Error(), productdomain.OrderNotFoundError.Error()) {
+			return domain.Order{}, domain.ErrOrderNotFound
+		}
 
 		return domain.Order{}, nil
 	}
