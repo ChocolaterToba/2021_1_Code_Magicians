@@ -1,4 +1,4 @@
-package profile
+package product
 
 import (
 	productclient "pinterest/clients/product"
