@@ -22,7 +22,9 @@ type ProductClientInterface interface {
 	AddToCart(ctx context.Context, userID uint64, productID uint64) (err error)
 	RemoveFromCart(ctx context.Context, userID uint64, productID uint64) (err error)
 	GetCart(ctx context.Context, userID uint64) (cart []domain.ProductWithQuantity, err error)
-	CompleteCart(ctx context.Context, userID uint64) (err error)
+	CompleteCart(ctx context.Context, userID uint64, pickUp bool, deliveryAddress string, paymentMethod string, callNeeded bool) (err error)
+	GetOrderByID(ctx context.Context, userID uint64, orderID uint64) (order domain.Order, err error)
+	GetOrders(ctx context.Context, userID uint64) (orders []domain.Order, err error)
 }
 
 type ProductClient struct {
@@ -172,17 +174,16 @@ func (client *ProductClient) GetCart(ctx context.Context, userID uint64) (cart [
 		return nil, errors.Wrap(err, "product client error")
 	}
 
-	cart = make([]domain.ProductWithQuantity, 0, len(pbCart.Products))
-	for _, pbProductWithQuantity := range pbCart.Products {
-		cart = append(cart, domain.ToProductWithQuantity(pbProductWithQuantity))
-	}
-
-	return cart, nil
+	return domain.ToProductsWithQuantity(pbCart.Products), nil
 }
 
-func (client *ProductClient) CompleteCart(ctx context.Context, userID uint64) (err error) {
+func (client *ProductClient) CompleteCart(ctx context.Context, userID uint64, pickUp bool, deliveryAddress string, paymentMethod string, callNeeded bool) (err error) {
 	_, err = client.productClient.CompleteCart(ctx, &productproto.CompleteCartRequest{
-		UserId: userID,
+		UserId:          userID,
+		PickUp:          pickUp,
+		DeliveryAddress: deliveryAddress,
+		PaymentMethod:   paymentMethod,
+		CallNeeded:      callNeeded,
 	})
 
 	if err != nil {
@@ -193,4 +194,33 @@ func (client *ProductClient) CompleteCart(ctx context.Context, userID uint64) (e
 	}
 
 	return nil
+}
+
+func (client *ProductClient) GetOrderByID(ctx context.Context, userID uint64, orderID uint64) (order domain.Order, err error) {
+	pbOrder, err := client.productClient.GetOrderByID(ctx, &productproto.GetOrderByIDRequest{
+		OrderId: orderID,
+		UserId:  userID,
+	})
+
+	if err != nil {
+		if strings.Contains(err.Error(), productdomain.ForeignOrderError.Error()) {
+			return domain.Order{}, domain.ErrForeignOrder
+		}
+
+		return domain.Order{}, nil
+	}
+
+	return domain.ToOrder(pbOrder), nil
+}
+
+func (client *ProductClient) GetOrders(ctx context.Context, userID uint64) (orders []domain.Order, err error) {
+	pbOrders, err := client.productClient.GetOrders(ctx, &productproto.GetOrdersRequest{
+		UserId: userID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return domain.ToOrders(pbOrders.Orders), nil
 }

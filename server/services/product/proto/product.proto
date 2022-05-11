@@ -129,7 +129,6 @@ message CompleteCartRequest {
   string delivery_address = 3;
   string payment_method = 4;
   bool call_needed = 5;
-  string status = 6;
 }
 
 message Order {

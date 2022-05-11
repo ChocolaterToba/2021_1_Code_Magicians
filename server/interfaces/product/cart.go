@@ -115,7 +115,15 @@ func (facade *ProductFacade) GetCart(w http.ResponseWriter, r *http.Request) {
 func (facade *ProductFacade) CompleteCart(w http.ResponseWriter, r *http.Request) {
 	cookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
 
-	err := facade.productClient.CompleteCart(context.Background(), cookie.UserID)
+	orderInput := new(domain.Order)
+	err := json.NewDecoder(r.Body).Decode(orderInput)
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = facade.productClient.CompleteCart(context.Background(), cookie.UserID, orderInput.PickUp, orderInput.DeliveryAddress, orderInput.PaymentMethod, orderInput.CallNeeded)
 
 	if err != nil {
 		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))

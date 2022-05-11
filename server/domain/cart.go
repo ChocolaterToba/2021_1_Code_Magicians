@@ -15,3 +15,12 @@ func ToProductWithQuantity(pbProductWithQuantity *productpb.ProductWithQuantity)
 		Quantity: pbProductWithQuantity.Quantity,
 	}
 }
+
+func ToProductsWithQuantity(pbProductsWithQuantity []*productpb.ProductWithQuantity) []ProductWithQuantity {
+	cart := make([]ProductWithQuantity, 0, len(pbProductsWithQuantity))
+	for _, pbProductWithQuantity := range pbProductsWithQuantity {
+		cart = append(cart, ToProductWithQuantity(pbProductWithQuantity))
+	}
+
+	return cart
+}
