@@ -6,69 +6,28 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - user-service
       - auth-service
-      - pins-service
-      - comments-service
-      - tarantool
+      - user-service
+      - product-service
     command: ["go", "run", "server_main.go"]
-  
-  user-service:
-    build: server
-    ports:
-      - 8082:8082
-    command: ["go", "run", "./cmd/user/"]
   
   auth-service:
     build: server
-    ports:
-      - 8083:8083
-    depends_on:
-      - user-service
-      - tarantool
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8081:8081
     command: ["go", "run", "./cmd/auth/"]
-
-  pins-service:
-    build: server
-    ports:
-      - 8084:8084
-    depends_on:
-      - user-service
-    command: ["go", "run", "./cmd/pins/"]
   
-  comments-service:
+  user-service:
     build: server
-    ports:
-      - 8085:8085
-    depends_on:
-      - user-service
-      - pins-service
-    command: ["go", "run", "./cmd/comments/"]
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8082:8082
+    command: ["go", "run", "./cmd/user/"]
   
-  tarantool:
-    build: tarantool
-    ports:
-      - "3301:3301"
-    volumes:
-      - tarantool-volume:/var/lib/tarantool
-
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - "./prometheus:/etc/prometheus"
-
-  grafana:
-    image: grafana/grafana:latest
-    depends_on:
-      - prometheus
-    ports:
-      - 3000:3000
-    volumes:
-      - ./grafana/provisioning/:/etc/grafana/provisioning/
-    env_file:
-      - ./grafana/config.grafana
-
-volumes:
-  tarantool-volume:
+  product-service:
+    build: server
+    # exposed ports are not needed if we only communicate inside docker-compose network
+    # ports:
+    #   - 8083:8083
+    command: ["go", "run", "./cmd/product"]

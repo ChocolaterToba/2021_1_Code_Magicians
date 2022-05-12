@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+// protoc --go_out=plugins=grpc:. *.proto
+// PATH="${PATH}:${HOME}/go/bin" protoc --go_out=plugins=grpc:. *.proto
+
+option go_package = "pinterest/services/product/proto";
+
+import "google/protobuf/timestamp.proto";
+
+package product;
+
+message Shop {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  repeated uint64 manager_ids = 4;
+}
+
+message CreateShopRequest {
+  string title = 1;
+  string description = 2;
+  repeated uint64 manager_ids = 3;
+}
+
+message CreateShopResponse {
+  uint64 id = 1;
+}
+
+message EditShopRequest {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  repeated uint64 manager_ids = 4;
+}
+
+message GetShopRequest {
+  uint64 id = 1;
+}
+
+message Product {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  uint64 price = 4;
+  bool availability = 5;
+  uint64 assembly_time = 6;
+  uint64 parts_amount = 7;
+  double rating = 8;
+  string size = 9;
+  string category = 10;
+  repeated string image_links = 11;
+  string video_link = 12;
+  uint64 shop_id = 13;
+}
+
+message CreateProductRequest {
+  string title = 1;
+  string description = 2;
+  uint64 price = 3;
+  bool availability = 4;
+  uint64 assembly_time = 5;
+  uint64 parts_amount = 6;
+  string size = 7;
+  string category = 8;
+  uint64 shop_id = 9;
+}
+
+message CreateProductResponse {
+  uint64 id = 1;
+}
+
+message EditProductRequest {
+  uint64 id = 1;
+  string title = 2;
+  string description = 3;
+  uint64 price = 4;
+  bool availability = 5;
+  uint64 assembly_time = 6;
+  uint64 parts_amount = 7;
+  string size = 8;
+  string category = 9;
+  uint64 shop_id = 10;
+}
+
+message GetProductRequest {
+  uint64 id = 1;
+}
+
+message GetProductsRequest {
+  uint64 page_offset = 1;
+  uint64 page_size = 2;
+  string category = 3;
+}
+
+message GetProductsByIDsRequest {
+  repeated uint64 ids = 1;
+}
+
+message GetProductsResponse {
+  repeated Product products = 1;
+}
+
+message AddToCartRequest {
+  uint64 user_id = 1;
+  uint64 product_id = 2;
+}
+
+message RemoveFromCartRequest {
+  uint64 user_id = 1;
+  uint64 product_id = 2;
+}
+
+message GetCartRequest {
+  uint64 user_id = 1;
+}
+
+message ProductWithQuantity {
+  Product product = 1;
+  uint64 quantity = 2;
+}
+
+message GetCartResponse {
+  repeated ProductWithQuantity products = 1;
+}
+
+message CompleteCartRequest {
+  uint64 user_id = 1;
+  bool pick_up = 2; // false means delivery
+  string delivery_address = 3;
+  string payment_method = 4;
+  bool call_needed = 5;
+}
+
+message Order {
+  uint64 id = 1;
+  repeated ProductWithQuantity items = 2;
+  google.protobuf.Timestamp created_at = 3;
+  uint64 total_price = 4;
+  bool pick_up = 5; // false means delivery
+  string delivery_address = 6;
+  string payment_method = 7;
+  bool call_needed = 8;
+  string status = 9;
+}
+
+message GetOrderByIDRequest {
+  uint64 order_id = 1;
+  uint64 user_id = 2; // to check if order belongs to user
+}
+
+message GetOrdersRequest {
+  uint64 user_id = 1;
+}
+
+message GetOrdersResponse {
+  repeated Order orders = 1;
+}
+
+message Empty {}
+
+service ProductService {
+  rpc   CreateShop(CreateShopRequest) returns (CreateShopResponse) {}
+  rpc   EditShop(EditShopRequest) returns (Empty) {}
+  rpc   GetShopByID(GetShopRequest) returns (Shop) {}
+  rpc   CreateProduct(CreateProductRequest) returns (CreateProductResponse) {}
+  rpc   EditProduct(EditProductRequest) returns (Empty) {}
+  rpc   GetProductByID(GetProductRequest) returns (Product) {}
+  rpc   GetProductsByIDs(GetProductsByIDsRequest) returns (GetProductsResponse) {}
+  rpc   GetProducts(GetProductsRequest) returns (GetProductsResponse) {}
+  rpc   AddToCart(AddToCartRequest) returns (Empty) {}
+  rpc   RemoveFromCart(RemoveFromCartRequest) returns (Empty) {}
+  rpc   GetCart(GetCartRequest) returns (GetCartResponse) {}
+  rpc   CompleteCart(CompleteCartRequest) returns (Empty) {}
+  rpc   GetOrderByID(GetOrderByIDRequest) returns (Order) {}
+  rpc   GetOrders(GetOrdersRequest) returns (GetOrdersResponse) {}
+}

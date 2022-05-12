@@ -2,34 +2,26 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"pinterest/application"
-	"pinterest/domain/entity"
-	"pinterest/infrastructure/persistance"
-	"pinterest/interfaces/auth"
-	"pinterest/interfaces/board"
-	"pinterest/interfaces/chat"
-	"pinterest/interfaces/comment"
-	"pinterest/interfaces/follow"
-	"pinterest/interfaces/notification"
-	"pinterest/interfaces/pin"
-	"pinterest/interfaces/profile"
+
+	authclient "pinterest/clients/auth"
+	productclient "pinterest/clients/product"
+	userclient "pinterest/clients/user"
+	authfacade "pinterest/interfaces/auth"
+	productfacade "pinterest/interfaces/product"
+	profilefacade "pinterest/interfaces/profile"
 	"pinterest/interfaces/routing"
-	"pinterest/interfaces/websocket"
-	protoAuth "pinterest/services/auth/proto"
-	protoComments "pinterest/services/comments/proto"
-	protoPins "pinterest/services/pins/proto"
-	protoUser "pinterest/services/user/proto"
-	"time"
+	authproto "pinterest/services/auth/proto"
+	productproto "pinterest/services/product/proto"
+	userproto "pinterest/services/user/proto"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 	"github.com/rs/cors"
-	"github.com/tarantool/go-tarantool"
 )
 
 func runServer(addr string) {
@@ -38,24 +30,9 @@ func runServer(addr string) {
 
 	sugarLogger := logger.Sugar()
 
-	err := godotenv.Load(".env")
+	err := loadSettings()
 	if err != nil {
-		sugarLogger.Fatal("Could not load .env file", zap.String("error", err.Error()))
-	}
-
-	err = godotenv.Load("passwords.env")
-	if err != nil {
-		sugarLogger.Fatal("Could not load passwords.env file", zap.String("error", err.Error()))
-	}
-
-	err = godotenv.Load("s3.env")
-	if err != nil {
-		sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
-	}
-
-	err = godotenv.Load("docker_vars.env")
-	if err != nil {
-		sugarLogger.Fatal("Could not load docker_vars.env file", zap.String("error", err.Error()))
+		sugarLogger.Fatal(err.Error())
 	}
 
 	dockerStatus := os.Getenv("CONTAINER_PREFIX")
@@ -63,19 +40,14 @@ func runServer(addr string) {
 		sugarLogger.Fatalf("Wrong prefix: %s , should be DOCKER or LOCALHOST", dockerStatus)
 	}
 
-	tarantoolConn, err := tarantool.Connect(os.Getenv(dockerStatus+"_TARANTOOL_PREFIX")+":3301", tarantool.Opts{
-		User: os.Getenv("TARANTOOL_USER"),
-		Pass: os.Getenv("TARANTOOL_PASSWORD"),
-	})
-	if err != nil {
-		sugarLogger.Fatal("Could not connect to tarantool database", zap.String("error", err.Error()))
-	}
-
-	fmt.Println("Successfully connected to tarantool database")
-	defer tarantoolConn.Close()
-
-	sess := entity.ConnectAws()
+	// sess := entity.ConnectAws()
 	// TODO divide file
+
+	sessionAuth, err := grpc.Dial(os.Getenv(dockerStatus+"_AUTH_PREFIX")+":8081", grpc.WithInsecure())
+	if err != nil {
+		sugarLogger.Fatal("Can not create session for Auth service")
+	}
+	defer sessionAuth.Close()
 
 	sessionUser, err := grpc.Dial(os.Getenv(dockerStatus+"_USER_PREFIX")+":8082", grpc.WithInsecure())
 	if err != nil {
@@ -83,69 +55,30 @@ func runServer(addr string) {
 	}
 	defer sessionUser.Close()
 
-	sessionAuth, err := grpc.Dial(os.Getenv(dockerStatus+"_AUTH_PREFIX")+":8083", grpc.WithInsecure())
+	sessionProduct, err := grpc.Dial(os.Getenv(dockerStatus+"_PRODUCT_PREFIX")+":8083", grpc.WithInsecure())
 	if err != nil {
-		sugarLogger.Fatal("Can not create session for Auth service")
+		sugarLogger.Fatal("Can not create session for Product service")
 	}
-	defer sessionAuth.Close()
+	defer sessionProduct.Close()
 
-	sessionPins, err := grpc.Dial(os.Getenv(dockerStatus+"_PINS_PREFIX")+":8084", grpc.WithInsecure())
-	if err != nil {
-		sugarLogger.Fatal("Can not create session for Pins service")
-	}
-	defer sessionPins.Close()
+	authClient := authclient.NewAuthClient(authproto.NewAuthClient(sessionAuth), os.Getenv("HTTPS_ON") == "true")
+	userClient := userclient.NewUserClient(userproto.NewUserClient(sessionUser))
+	productClient := productclient.NewProductClient(productproto.NewProductServiceClient(sessionProduct))
 
-	sessionComments, err := grpc.Dial(os.Getenv(dockerStatus+"_COMMENTS_PREFIX")+":8085", grpc.WithInsecure())
-	if err != nil {
-		sugarLogger.Fatal("Can not create session for Comments service")
-	}
-	defer sessionComments.Close()
+	authFacade := authfacade.NewAuthFacade(authClient, logger)
+	profileFacade := profilefacade.NewProfileFacade(userClient, authClient, logger)
+	productFacade := productfacade.NewProductFacade(productClient, logger)
 
-	pinEmailTemplteBytes, err := ioutil.ReadFile(string(entity.EmailTemplateFilenameKey))
-	if err != nil {
-		sugarLogger.Fatal("Could not find template for pin emails")
-	}
-	pinEmailTemplate := string(pinEmailTemplteBytes)
+	r := routing.CreateRouter(authClient, authFacade, profileFacade, productFacade, os.Getenv("CSRF_ON") == "true")
 
-	repoUser := protoUser.NewUserClient(sessionUser)
-	repoAuth := protoAuth.NewAuthClient(sessionAuth)
-	repoPins := protoPins.NewPinsClient(sessionPins)
-	repoComments := protoComments.NewCommentsClient(sessionComments)
-	repoNotification := persistance.NewNotificationRepository(tarantoolConn)
-	repoChat := persistance.NewChatRepository(tarantoolConn)
-	cookieApp := application.NewCookieApp(repoAuth, 40, 10*time.Hour)
-	boardApp := application.NewBoardApp(repoPins)
-	s3App := application.NewS3App(sess, os.Getenv("BUCKET_NAME"))
-	userApp := application.NewUserApp(repoUser, boardApp)
-	authApp := application.NewAuthApp(repoAuth, userApp, cookieApp)
-	pinApp := application.NewPinApp(repoPins, boardApp)
-	followApp := application.NewFollowApp(repoUser, pinApp)
-	commentApp := application.NewCommentApp(repoComments)
-	websocketApp := application.NewWebsocketApp(userApp)
-	notificationApp := application.NewNotificationApp(repoNotification, userApp, websocketApp)
-	chatApp := application.NewChatApp(repoChat, userApp, websocketApp)
-
-	boardInfo := board.NewBoardInfo(boardApp, logger)
-	authInfo := auth.NewAuthInfo(userApp, authApp, cookieApp, s3App, boardApp, websocketApp, logger)
-	profileInfo := profile.NewProfileInfo(userApp, authApp, cookieApp, followApp, s3App, notificationApp, logger)
-	followInfo := follow.NewFollowInfo(userApp, followApp, notificationApp, logger)
-	pinInfo := pin.NewPinInfo(pinApp, followApp, notificationApp, userApp, boardApp, s3App, logger,
-		pinEmailTemplate, os.Getenv("EMAIL_USERNAME"), os.Getenv("EMAIL_PASSWORD"))
-	commentsInfo := comment.NewCommentInfo(commentApp, pinApp, logger)
-	websocketInfo := websocket.NewWebsocketInfo(notificationApp, chatApp, websocketApp, os.Getenv("CSRF_ON") == "true", logger)
-	notificationInfo := notification.NewNotificationInfo(notificationApp, logger)
-	chatInfo := chat.NewChatnfo(chatApp, userApp, logger)
-	// TODO divide file
-
-	r := routing.CreateRouter(authApp, boardInfo, authInfo, profileInfo, followInfo, pinInfo, commentsInfo,
-		websocketInfo, notificationInfo, chatInfo, os.Getenv("CSRF_ON") == "true", os.Getenv("HTTPS_ON") == "true")
-
-	allowedOrigins := make([]string, 3) // If needed, replace 3 with number of needed origins
+	allowedOrigins := make([]string, 0)
 	switch os.Getenv("HTTPS_ON") {
 	case "true":
-		allowedOrigins = append(allowedOrigins, "https://pinter-best.com:8081", "https://pinter-best.com", "https://127.0.0.1:8081")
+		allowedOrigins = append(allowedOrigins, "https://gears4us.ru:8081", "https://gears4us.ru",
+			"https://127.0.0.1:8081", "https://51.250.76.99", "https://localhost:3001") // TODO: replace with actual
 	case "false":
-		allowedOrigins = append(allowedOrigins, "http://pinter-best.com:8081", "http://pinter-best.com", "http://127.0.0.1:8081")
+		allowedOrigins = append(allowedOrigins, "http://gears4us.ru:8081", "http://gears4us.ru",
+			"http://127.0.0.1:8081", "http://51.250.76.99", "http://localhost:3001")
 	default:
 		sugarLogger.Fatal("HTTPS_ON variable is not set")
 	}
@@ -159,14 +92,45 @@ func runServer(addr string) {
 	handler := c.Handler(r)
 	fmt.Printf("Starting server at localhost%s\n", addr)
 
-	switch os.Getenv("HTTPS_ON") {
+	switch os.Getenv("SERVE_HTTPS_ON") {
 	case "true":
 		sugarLogger.Fatal(http.ListenAndServeTLS(addr, "cert.pem", "key.pem", handler))
 	case "false":
 		sugarLogger.Fatal(http.ListenAndServe(addr, handler))
+	default:
+		sugarLogger.Fatal("SERVE_HTTPS_ON variable is not set")
 	}
 }
 
 func main() {
 	runServer(":8080")
+}
+
+func loadSettings() (err error) {
+	err = godotenv.Load(".env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load .env file")
+	}
+
+	err = godotenv.Load("passwords.env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load passwords.env file")
+	}
+
+	// err = godotenv.Load("s3.env")
+	// if err != nil {
+	// 	sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
+	// }
+
+	err = godotenv.Load("docker_vars.env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load docker_vars.env file")
+	}
+
+	err = godotenv.Load("vk_info.env")
+	if err != nil {
+		return errors.Wrap(err, "Could not load vk_info.env file")
+	}
+
+	return nil
 }
