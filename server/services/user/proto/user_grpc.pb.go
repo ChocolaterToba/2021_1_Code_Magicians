@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserClient interface {
 	CreateUser(ctx context.Context, in *UserReg, opts ...grpc.CallOption) (*UserID, error)
 	EditUser(ctx context.Context, in *UserEditInput, opts ...grpc.CallOption) (*Empty, error)
-	// rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
+	UpdateAvatar(ctx context.Context, opts ...grpc.CallOption) (User_UpdateAvatarClient, error)
 	// rpc   DeleteUser(UserID) returns (Empty) {}
 	GetUserByID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error)
 	GetUserByUsername(ctx context.Context, in *Username, opts ...grpc.CallOption) (*UserOutput, error)
@@ -51,6 +51,40 @@ func (c *userClient) EditUser(ctx context.Context, in *UserEditInput, opts ...gr
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *userClient) UpdateAvatar(ctx context.Context, opts ...grpc.CallOption) (User_UpdateAvatarClient, error) {
+	stream, err := c.cc.NewStream(ctx, &User_ServiceDesc.Streams[0], "/user.User/UpdateAvatar", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userUpdateAvatarClient{stream}
+	return x, nil
+}
+
+type User_UpdateAvatarClient interface {
+	Send(*UpdateAvatarRequest) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type userUpdateAvatarClient struct {
+	grpc.ClientStream
+}
+
+func (x *userUpdateAvatarClient) Send(m *UpdateAvatarRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *userUpdateAvatarClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *userClient) GetUserByID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error) {
@@ -86,7 +120,7 @@ func (c *userClient) GetUsers(ctx context.Context, in *Empty, opts ...grpc.CallO
 type UserServer interface {
 	CreateUser(context.Context, *UserReg) (*UserID, error)
 	EditUser(context.Context, *UserEditInput) (*Empty, error)
-	// rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
+	UpdateAvatar(User_UpdateAvatarServer) error
 	// rpc   DeleteUser(UserID) returns (Empty) {}
 	GetUserByID(context.Context, *UserID) (*UserOutput, error)
 	GetUserByUsername(context.Context, *Username) (*UserOutput, error)
@@ -103,6 +137,9 @@ func (UnimplementedUserServer) CreateUser(context.Context, *UserReg) (*UserID, e
 }
 func (UnimplementedUserServer) EditUser(context.Context, *UserEditInput) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditUser not implemented")
+}
+func (UnimplementedUserServer) UpdateAvatar(User_UpdateAvatarServer) error {
+	return status.Errorf(codes.Unimplemented, "method UpdateAvatar not implemented")
 }
 func (UnimplementedUserServer) GetUserByID(context.Context, *UserID) (*UserOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
@@ -160,6 +197,32 @@ func _User_EditUser_Handler(srv interface{}, ctx context.Context, dec func(inter
 		return srv.(UserServer).EditUser(ctx, req.(*UserEditInput))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _User_UpdateAvatar_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UserServer).UpdateAvatar(&userUpdateAvatarServer{stream})
+}
+
+type User_UpdateAvatarServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*UpdateAvatarRequest, error)
+	grpc.ServerStream
+}
+
+type userUpdateAvatarServer struct {
+	grpc.ServerStream
+}
+
+func (x *userUpdateAvatarServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *userUpdateAvatarServer) Recv() (*UpdateAvatarRequest, error) {
+	m := new(UpdateAvatarRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _User_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -244,6 +307,12 @@ var User_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _User_GetUsers_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "UpdateAvatar",
+			Handler:       _User_UpdateAvatar_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "user.proto",
 }

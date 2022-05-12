@@ -26,11 +26,12 @@ func PbUserEditinputToUser(pbUser *pb.UserEditInput) User {
 
 func UserToPbUserOutput(user User) *pb.UserOutput {
 	return &pb.UserOutput{
-		UserID:    user.UserID,
-		Username:  user.Username,
-		Email:     user.Email,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
+		UserID:     user.UserID,
+		Username:   user.Username,
+		Email:      user.Email,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		AvatarPath: user.AvatarPath,
 	}
 }
 

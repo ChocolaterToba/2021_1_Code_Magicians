@@ -3,12 +3,13 @@ package domain
 import userpb "pinterest/services/user/proto"
 
 type User struct {
-	UserID    uint64 `json:"user_id,omitempty"`
-	Username  string `json:"username,omitempty"`
-	Password  string `json:"password,omitempty"`
-	FirstName string `json:"first_name,omitempty"`
-	LastName  string `json:"last_name,omitempty"`
-	Email     string `json:"email,omitempty"`
+	UserID     uint64 `json:"user_id,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Password   string `json:"password,omitempty"`
+	FirstName  string `json:"first_name,omitempty"`
+	LastName   string `json:"last_name,omitempty"`
+	Email      string `json:"email,omitempty"`
+	AvatarPath string `json:"avatar,omitempty"`
 }
 
 type UserIDResponse struct {
@@ -37,11 +38,12 @@ func ToPbUserEdit(user User) *userpb.UserEditInput {
 
 func ToUser(pbUser *userpb.UserOutput) User {
 	return User{
-		UserID:    uint64(pbUser.UserID),
-		Username:  pbUser.GetUsername(),
-		FirstName: pbUser.GetFirstName(),
-		LastName:  pbUser.GetLastName(),
-		Email:     pbUser.GetEmail(),
+		UserID:     uint64(pbUser.UserID),
+		Username:   pbUser.GetUsername(),
+		FirstName:  pbUser.GetFirstName(),
+		LastName:   pbUser.GetLastName(),
+		Email:      pbUser.GetEmail(),
+		AvatarPath: pbUser.GetAvatarPath(),
 	}
 }
 

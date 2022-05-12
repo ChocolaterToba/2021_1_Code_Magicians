@@ -6,7 +6,9 @@ import (
 	"log"
 	"net"
 	"os"
+	"pinterest/domain"
 	userapp "pinterest/services/user/application"
+	users3 "pinterest/services/user/clients/s3"
 	userrepo "pinterest/services/user/infrastructure"
 	userfacade "pinterest/services/user/interfaces"
 	userproto "pinterest/services/user/proto"
@@ -33,10 +35,10 @@ func runService(addr string) {
 		sugarLogger.Fatal("Could not load passwords.env file", zap.String("error", err.Error()))
 	}
 
-	// err = godotenv.Load("s3.env")
-	// if err != nil {
-	// 	sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
-	// }
+	err = godotenv.Load("s3.env")
+	if err != nil {
+		sugarLogger.Fatal("Could not load s3.env file", zap.String("error", err.Error()))
+	}
 
 	err = godotenv.Load("docker_vars.env")
 	if err != nil {
@@ -67,7 +69,13 @@ func runService(addr string) {
 
 	server := grpc.NewServer()
 
-	service := userfacade.NewUserFacade(userapp.NewUserApp(userrepo.NewUserRepo(postgresConn)))
+	s3session, err := domain.ConnectAws()
+	if err != nil {
+		sugarLogger.Fatal("Could not connect to s3 bucket", zap.String("error", err.Error()))
+	}
+
+	service := userfacade.NewUserFacade(userapp.NewUserApp(
+		userrepo.NewUserRepo(postgresConn), users3.NewS3Client(s3session, os.Getenv("AWS_BUCKET_NAME"))))
 	userproto.RegisterUserServer(server, service)
 
 	lis, err := net.Listen("tcp", addr)

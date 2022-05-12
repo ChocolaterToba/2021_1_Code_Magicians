@@ -13,4 +13,6 @@ var (
 	ErrCartEmpty             = errors.New("Cart is empty")
 	ErrOrderNotFound         = errors.New("Order not found")
 	ErrForeignOrder          = errors.New("Order belongs to another user")
+	ErrFileTooLarge          = errors.New("File is too large")
+	ErrNoFile                = errors.New("No file found!")
 )

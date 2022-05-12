@@ -225,3 +225,51 @@ func (facade *ProfileFacade) GetCurrentUser(w http.ResponseWriter, r *http.Reque
 	w.Write(responseBody)
 	return
 }
+
+const maxPostAvatarBodySize = 8 * 1024 * 1024 // 8 mB
+// HandlePostAvatar takes avatar from request and assigns it to current user
+func (facade *ProfileFacade) HandlePostAvatar(w http.ResponseWriter, r *http.Request) {
+	cookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
+
+	bodySize := r.ContentLength
+
+	if bodySize <= 0 { // No avatar was passed
+		facade.logger.Info(domain.ErrNoFile.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if bodySize > int64(maxPostAvatarBodySize) { // Avatar is too large
+		facade.logger.Info(domain.ErrFileTooLarge.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	r.ParseMultipartForm(bodySize)
+	file, header, err := r.FormFile("avatarImage")
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	defer file.Close()
+
+	err = facade.userClient.UpdateAvatar(context.Background(), cookie.UserID, header.Filename, file)
+	if err != nil {
+		// TODO: parse wrong extension errors
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

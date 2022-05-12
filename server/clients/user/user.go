@@ -1,11 +1,14 @@
 package user
 
 import (
+	"bufio"
 	"context"
+	"io"
 	"pinterest/domain"
 	userdomain "pinterest/services/user/domain"
 	userproto "pinterest/services/user/proto"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -16,6 +19,7 @@ type UserClientInterface interface {
 	GetUserByID(ctx context.Context, userID uint64) (user domain.User, err error)
 	GetUserByUsername(ctx context.Context, username string) (user domain.User, err error)
 	GetUsers(ctx context.Context) (users []domain.User, err error)
+	UpdateAvatar(ctx context.Context, userID uint64, filename string, file io.Reader) (err error)
 }
 
 type UserClient struct {
@@ -27,6 +31,7 @@ func NewUserClient(userClient userproto.UserClient) *UserClient {
 		userClient: userClient,
 	}
 }
+
 func (client *UserClient) CreateUser(ctx context.Context, user domain.User) (userID uint64, err error) {
 	pbUserID, err := client.userClient.CreateUser(ctx, domain.ToPbUserReg(user))
 
@@ -84,4 +89,65 @@ func (client *UserClient) GetUsers(ctx context.Context) (users []domain.User, er
 	}
 
 	return domain.ToUsers(pbUsers.Users), nil
+}
+
+func (client *UserClient) UpdateAvatar(ctx context.Context, userID uint64, filename string, file io.Reader) (err error) {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
+	defer cancel()
+
+	stream, err := client.userClient.UpdateAvatar(ctx)
+	if err != nil {
+		return errors.Wrap(err, "Cannot start stream")
+	}
+
+	userIdReq := &userproto.UpdateAvatarRequest{
+		Data: &userproto.UpdateAvatarRequest_UserId{
+			UserId: userID,
+		},
+	}
+	err = stream.Send(userIdReq)
+	if err != nil {
+		return errors.Wrap(err, "Cannot send user id to service")
+	}
+
+	filenameReq := &userproto.UpdateAvatarRequest{
+		Data: &userproto.UpdateAvatarRequest_Filename{
+			Filename: filename,
+		},
+	}
+	err = stream.Send(filenameReq)
+	if err != nil {
+		return errors.Wrap(err, "Cannot send image's filename to service")
+	}
+
+	reader := bufio.NewReader(file)
+	buffer := make([]byte, 3.5*1024*1024) // jrpc by default cannot receive packages larger than 4 MB
+
+	for {
+		n, err := reader.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return errors.Wrap(err, "Cannot read chunk to buffer")
+		}
+
+		req := &userproto.UpdateAvatarRequest{
+			Data: &userproto.UpdateAvatarRequest_Chunk{
+				Chunk: buffer[:n],
+			},
+		}
+		err = stream.Send(req)
+		if err != nil {
+			return errors.Wrap(err, "Cannot send chunk to server")
+		}
+	}
+
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		// TODO: parse this error
+		return errors.Wrap(err, "Cannot receive response")
+	}
+
+	return nil
 }

@@ -33,7 +33,7 @@ message UserOutput {
   uint64   UserID = 1;
   string  Username = 2;
   string  Email = 3;
-  string  Avatar = 4;
+  string  AvatarPath = 4;
   string  FirstName = 5;
   string  LastName = 6;
 }
@@ -51,20 +51,16 @@ message Username {
   string username = 1;
 }
 
-message UploadAvatar {
-  oneof data {
-    string Extension = 1;
-    bytes chunk_data = 2;
-  };
-}
-
-message UploadAvatarResponse {
-  string path = 1;
-  uint32 size = 2;
-}
-
 message SearchInput {
   string keyWords = 1;
+}
+
+message UpdateAvatarRequest {
+  oneof data {
+    uint64 user_id = 1;
+    string filename = 2;
+    bytes chunk = 3;
+  }
 }
 
 message Empty {}
@@ -72,7 +68,7 @@ message Empty {}
 service User {
   rpc   CreateUser(UserReg) returns (UserID) {}
   rpc   EditUser(UserEditInput) returns (Empty) {}
-  // rpc   UpdateAvatar(stream UploadAvatar) returns (UploadAvatarResponse) {}
+  rpc   UpdateAvatar(stream UpdateAvatarRequest) returns (Empty) {}
   // rpc   DeleteUser(UserID) returns (Empty) {}
   rpc   GetUserByID(UserID) returns (UserOutput) {}
   rpc   GetUserByUsername(Username) returns (UserOutput) {}

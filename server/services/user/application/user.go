@@ -1,10 +1,17 @@
 package application
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"path/filepath"
+	s3client "pinterest/services/user/clients/s3"
 	"pinterest/services/user/domain"
 	repository "pinterest/services/user/infrastructure"
+	"time"
 
+	"github.com/dchest/uniuri"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,15 +21,18 @@ type UserAppInterface interface {
 	GetUserByUsername(ctx context.Context, username string) (user domain.User, err error)
 	GetUsers(ctx context.Context) (users []domain.User, err error)
 	EditUser(ctx context.Context, user domain.User) (err error)
+	UpdateAvatar(ctx context.Context, userID uint64, filename string, file *bytes.Buffer) (err error)
 }
 
 type UserApp struct {
-	repo repository.UserRepoInterface
+	repo     repository.UserRepoInterface
+	s3Client s3client.S3ClientInterface
 }
 
-func NewUserApp(repo repository.UserRepoInterface) *UserApp {
+func NewUserApp(repo repository.UserRepoInterface, s3Client s3client.S3ClientInterface) *UserApp {
 	return &UserApp{
-		repo: repo,
+		repo:     repo,
+		s3Client: s3Client,
 	}
 }
 
@@ -65,4 +75,40 @@ func (app *UserApp) EditUser(ctx context.Context, user domain.User) (err error) 
 	}
 
 	return app.repo.UpdateUser(ctx, dbUser)
+}
+
+const AvatarIDLen = 10
+
+func (app *UserApp) UpdateAvatar(ctx context.Context, userID uint64, filename string, file *bytes.Buffer) (err error) {
+	user, err := app.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	extension := filepath.Ext(filename)
+	if extension != ".jpeg" && extension != ".jpg" && extension != ".png" {
+		return errors.Wrap(domain.UnsupportedExtensionError, fmt.Sprintf("Extension: %s", extension))
+	}
+
+	filePrefix := time.Now().Format("2006/01/02") // is used for easy manual file search
+
+	fileID := uniuri.NewLen(AvatarIDLen)
+
+	newAvatarPath := filePrefix + "/" + fileID + "_" + filename
+
+	err = app.s3Client.UploadFile(ctx, newAvatarPath, file)
+	if err != nil {
+		return err
+	}
+
+	oldAvatarPath := user.AvatarPath
+	user.AvatarPath = newAvatarPath
+
+	err = app.repo.UpdateUser(ctx, user)
+	if err != nil {
+		app.s3Client.DeleteFile(ctx, oldAvatarPath) // Try to delete freshly uploaded file
+		return err
+	}
+
+	return app.s3Client.DeleteFile(ctx, oldAvatarPath)
 }

@@ -1,13 +1,16 @@
 package facade
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"pinterest/services/user/application"
 	"pinterest/services/user/domain"
 	pb "pinterest/services/user/proto"
 
 	"github.com/pkg/errors"
-	_ "google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type UserFacade struct {
@@ -57,4 +60,56 @@ func (facade *UserFacade) GetUsers(ctx context.Context, in *pb.Empty) (*pb.Users
 		return &pb.UsersListOutput{}, errors.Wrap(err, "Could not get users")
 	}
 	return domain.UsersToPbUserListOutput(users), nil
+}
+
+const maxPostAvatarBodySize = 8 * 1024 * 1024 // 8 mB
+
+func (facade *UserFacade) UpdateAvatar(stream pb.User_UpdateAvatarServer) error {
+
+	req, err := stream.Recv()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "cannot receive user id")
+	}
+
+	userID := req.GetUserId()
+
+	req, err = stream.Recv()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "cannot receive filename")
+	}
+
+	filename := req.GetFilename()
+
+	// filenamePrefix := uniuri.NewLen(10) // generating random filename
+	// newAvatarPath := "avatars/" + filenamePrefix + req.GetExtension() // TODO: avatars folder sharding by date
+
+	imageData := bytes.Buffer{}
+	imageSize := 0
+	for {
+		req, err = stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err)
+		}
+		chunk := req.GetChunk()
+		size := len(chunk)
+
+		imageSize += size
+		if imageSize > maxPostAvatarBodySize {
+			return status.Errorf(codes.InvalidArgument, "image is too large: %d > %d", imageSize, maxPostAvatarBodySize)
+		}
+		_, err = imageData.Write(chunk)
+		if err != nil {
+			return status.Errorf(codes.Internal, "cannot write chunk data: %v", err)
+		}
+	}
+
+	err = facade.app.UpdateAvatar(context.Background(), userID, filename, &imageData)
+	if err != nil {
+		return err
+	}
+
+	return stream.SendAndClose(&pb.Empty{})
 }

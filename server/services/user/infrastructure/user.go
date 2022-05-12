@@ -56,10 +56,10 @@ func (repo *UserRepo) UpdateUser(ctx context.Context, user domain.User) (err err
 	defer tx.Rollback(ctx)
 
 	updateUserQuery := `UPDATE users
-						SET email = $2, first_name = $3, last_name = $4
+						SET email = $2, first_name = $3, last_name = $4, avatar_path = $5
 						WHERE id = $1`
 
-	result, err := tx.Exec(ctx, updateUserQuery, user.UserID, user.Email, user.FirstName, user.LastName)
+	result, err := tx.Exec(ctx, updateUserQuery, user.UserID, user.Email, user.FirstName, user.LastName, user.AvatarPath)
 	if err != nil {
 		return err
 	}
@@ -82,12 +82,12 @@ func (repo *UserRepo) GetUserByID(ctx context.Context, userID uint64) (user doma
 	}
 	defer tx.Rollback(ctx)
 
-	getUserByIDQuery := `SELECT id, username, email, first_name, last_name
+	getUserByIDQuery := `SELECT id, username, email, first_name, last_name, avatar_path
 						 FROM users
 						 WHERE id = $1`
 
 	row := tx.QueryRow(ctx, getUserByIDQuery, userID)
-	err = row.Scan(&user.UserID, &user.Username, &user.Email, &user.FirstName, &user.LastName)
+	err = row.Scan(&user.UserID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.AvatarPath)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return domain.User{}, domain.UserNotFoundError
@@ -110,12 +110,12 @@ func (repo *UserRepo) GetUserByUsername(ctx context.Context, username string) (u
 	}
 	defer tx.Rollback(ctx)
 
-	getUserByUsernameQuery := `SELECT id, username, email, first_name, last_name
+	getUserByUsernameQuery := `SELECT id, username, email, first_name, last_name, avatar_path
 							   FROM users
 							   WHERE username = $1`
 
 	row := tx.QueryRow(ctx, getUserByUsernameQuery, username)
-	err = row.Scan(&user.UserID, &user.Username, &user.Email, &user.FirstName, &user.LastName)
+	err = row.Scan(&user.UserID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.AvatarPath)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return domain.User{}, domain.UserNotFoundError
@@ -138,7 +138,7 @@ func (repo *UserRepo) GetUsers(ctx context.Context) (users []domain.User, err er
 	}
 	defer tx.Rollback(ctx)
 
-	getUsersQuery := `SELECT id, username, email, first_name, last_name
+	getUsersQuery := `SELECT id, username, email, first_name, last_name, avatar_path
 							   FROM users
 							   WHERE username = $1`
 
@@ -151,7 +151,7 @@ func (repo *UserRepo) GetUsers(ctx context.Context) (users []domain.User, err er
 
 	for rows.Next() {
 		user := domain.User{}
-		err = rows.Scan(&user.UserID, &user.Username, &user.Email, &user.FirstName, &user.LastName)
+		err = rows.Scan(&user.UserID, &user.Username, &user.Email, &user.FirstName, &user.LastName, &user.AvatarPath)
 		if err != nil {
 			return nil, err
 		}
