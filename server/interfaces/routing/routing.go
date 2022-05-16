@@ -43,13 +43,14 @@ func CreateRouter(authClient authclient.AuthClientInterface,
 	r.HandleFunc("/api/auth/credentials/edit", mid.AuthMid(authFacade.ChangeCredentials, authClient)).Methods("PUT")
 	r.HandleFunc("/api/profile/edit", mid.AuthMid(profileFacade.EditUser, authClient)).Methods("PUT")
 	// r.HandleFunc("/api/profile/delete", mid.AuthMid(profileInfo.HandleDeleteProfile, authApp)).Methods("DELETE")
-	r.HandleFunc("/api/profile", mid.AuthMid(profileFacade.GetCurrentUser, authClient)).Methods("GET")
-	r.HandleFunc("/api/profile/{id:[0-9]+}", profileFacade.GetUserByID).Methods("GET") // Is preferred over next one
-	r.HandleFunc("/api/profile/{username}", profileFacade.GetUserByUsername).Methods("GET")
 	r.HandleFunc("/api/profile/avatar", mid.AuthMid(profileFacade.HandlePostAvatar, authClient)).Methods("PUT")
 	// r.HandleFunc("/api/profiles/search/{searchKey}", profileInfo.HandleGetProfilesByKeyWords).Methods("GET")
 	r.HandleFunc("/api/profile/roles", mid.AuthMid(profileFacade.GetRoles, authClient)).Methods("GET")
-	r.HandleFunc("/api/profile/role", mid.AuthMid(profileFacade.AddRole, authClient)).Methods("POST")
+	r.HandleFunc("/api/profile/role", mid.AuthMid(profileFacade.AddRole, authClient)).Methods("PUT")
+
+	r.HandleFunc("/api/profile", mid.AuthMid(profileFacade.GetCurrentUser, authClient)).Methods("GET")
+	r.HandleFunc("/api/profile/{id:[0-9]+}", profileFacade.GetUserByID).Methods("GET") // Is preferred over next one
+	r.HandleFunc("/api/profile/{username}", profileFacade.GetUserByUsername).Methods("GET")
 
 	r.HandleFunc("/api/shop", mid.AuthMid(productFacade.CreateShop, authClient)).Methods("POST")
 	r.HandleFunc("/api/shop/{id:[0-9]+}", mid.AuthMid(productFacade.EditShop, authClient)).Methods("PUT")
