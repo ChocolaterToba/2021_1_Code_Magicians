@@ -16,6 +16,11 @@ type UserIDResponse struct {
 	UserID uint64 `json:"user_id"`
 }
 
+type AddRolesRequest struct {
+	UserID uint64 `json:"user_id"`
+	Role   string `json:"role"`
+}
+
 func ToPbUserReg(user User) *userpb.UserReg {
 	return &userpb.UserReg{
 		Username:  user.Username,
@@ -52,6 +57,15 @@ func ToUsers(pbUsers []*userpb.UserOutput) []User {
 
 	for _, pbUser := range pbUsers {
 		result = append(result, ToUser(pbUser))
+	}
+
+	return result
+}
+
+func ToRoles(pbRoles []userpb.Role) []string {
+	result := make([]string, 0, len(pbRoles))
+	for _, pbRole := range pbRoles {
+		result = append(result, pbRole.String())
 	}
 
 	return result

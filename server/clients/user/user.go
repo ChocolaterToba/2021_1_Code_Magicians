@@ -20,6 +20,8 @@ type UserClientInterface interface {
 	GetUserByUsername(ctx context.Context, username string) (user domain.User, err error)
 	GetUsers(ctx context.Context) (users []domain.User, err error)
 	UpdateAvatar(ctx context.Context, userID uint64, filename string, file io.Reader) (err error)
+	GetRoles(ctx context.Context, userID uint64) (roles []string, err error)
+	AddRole(ctx context.Context, userID uint64, role string) (err error)
 }
 
 type UserClient struct {
@@ -147,6 +149,29 @@ func (client *UserClient) UpdateAvatar(ctx context.Context, userID uint64, filen
 	if err != nil {
 		// TODO: parse this error
 		return errors.Wrap(err, "Cannot receive response")
+	}
+
+	return nil
+}
+
+func (client *UserClient) GetRoles(ctx context.Context, userID uint64) (roles []string, err error) {
+	pbRoles, err := client.userClient.GetRoles(ctx, &userproto.UserID{Uid: userID})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "user client error")
+	}
+
+	return domain.ToRoles(pbRoles.Roles), nil
+}
+
+func (client *UserClient) AddRole(ctx context.Context, userID uint64, role string) (err error) {
+	_, err = client.userClient.AddRole(ctx, &userproto.AddRoleRequest{
+		UserId: userID,
+		Role:   userproto.Role(userproto.Role_value[role]),
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "user client error")
 	}
 
 	return nil

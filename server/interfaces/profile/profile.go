@@ -272,4 +272,59 @@ func (facade *ProfileFacade) HandlePostAvatar(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+	return
+}
+
+// AddRole adds specified role to specified user
+func (facade *ProfileFacade) GetRoles(w http.ResponseWriter, r *http.Request) {
+	cookie := r.Context().Value(domain.CookieInfoKey).(domain.CookieInfo)
+
+	roles, err := facade.userClient.GetRoles(context.Background(), cookie.UserID)
+
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	responseBody, err := json.Marshal(roles)
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseBody)
+	return
+}
+
+// AddRole adds specified role to specified user
+func (facade *ProfileFacade) AddRole(w http.ResponseWriter, r *http.Request) {
+	roleInput := new(domain.AddRolesRequest)
+	err := json.NewDecoder(r.Body).Decode(roleInput)
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = facade.userClient.AddRole(context.Background(), roleInput.UserID, roleInput.Role)
+
+	if err != nil {
+		facade.logger.Info(err.Error(), zap.String("url", r.RequestURI), zap.String("method", r.Method))
+		switch err {
+		case domain.ErrUserNotFound:
+			w.WriteHeader(http.StatusNotFound)
+		default:
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return
 }

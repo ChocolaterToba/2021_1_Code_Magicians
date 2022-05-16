@@ -48,6 +48,8 @@ func CreateRouter(authClient authclient.AuthClientInterface,
 	r.HandleFunc("/api/profile/{username}", profileFacade.GetUserByUsername).Methods("GET")
 	r.HandleFunc("/api/profile/avatar", mid.AuthMid(profileFacade.HandlePostAvatar, authClient)).Methods("PUT")
 	// r.HandleFunc("/api/profiles/search/{searchKey}", profileInfo.HandleGetProfilesByKeyWords).Methods("GET")
+	r.HandleFunc("/api/profile/roles", mid.AuthMid(profileFacade.GetRoles, authClient)).Methods("GET")
+	r.HandleFunc("/api/profile/role", mid.AuthMid(profileFacade.AddRole, authClient)).Methods("POST")
 
 	r.HandleFunc("/api/shop", mid.AuthMid(productFacade.CreateShop, authClient)).Methods("POST")
 	r.HandleFunc("/api/shop/{id:[0-9]+}", mid.AuthMid(productFacade.EditShop, authClient)).Methods("PUT")
