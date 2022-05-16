@@ -65,7 +65,6 @@ func (facade *UserFacade) GetUsers(ctx context.Context, in *pb.Empty) (*pb.Users
 const maxPostAvatarBodySize = 8 * 1024 * 1024 // 8 mB
 
 func (facade *UserFacade) UpdateAvatar(stream pb.User_UpdateAvatarServer) error {
-
 	req, err := stream.Recv()
 	if err != nil {
 		return status.Errorf(codes.Unknown, "cannot receive user id")
@@ -112,4 +111,22 @@ func (facade *UserFacade) UpdateAvatar(stream pb.User_UpdateAvatarServer) error 
 	}
 
 	return stream.SendAndClose(&pb.Empty{})
+}
+
+func (facade *UserFacade) GetRoles(ctx context.Context, in *pb.UserID) (*pb.GetRolesResponse, error) {
+	roles, err := facade.app.GetRoles(ctx, in.GetUid())
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.GetRolesResponse{Roles: domain.ToPbRoles(roles)}, err
+}
+
+func (facade *UserFacade) AddRole(ctx context.Context, in *pb.AddRoleRequest) (*pb.Empty, error) {
+	err := facade.app.AddRole(ctx, in.GetUserId(), in.GetRole().String())
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.Empty{}, nil
 }

@@ -22,6 +22,8 @@ type UserAppInterface interface {
 	GetUsers(ctx context.Context) (users []domain.User, err error)
 	EditUser(ctx context.Context, user domain.User) (err error)
 	UpdateAvatar(ctx context.Context, userID uint64, filename string, file *bytes.Buffer) (err error)
+	GetRoles(ctx context.Context, userID uint64) (roles []string, err error)
+	AddRole(ctx context.Context, userID uint64, role string) (err error)
 }
 
 type UserApp struct {
@@ -111,4 +113,12 @@ func (app *UserApp) UpdateAvatar(ctx context.Context, userID uint64, filename st
 	}
 
 	return app.s3Client.DeleteFile(ctx, oldAvatarPath)
+}
+
+func (app *UserApp) GetRoles(ctx context.Context, userID uint64) (roles []string, err error) {
+	return app.repo.GetRoles(ctx, userID)
+}
+
+func (app *UserApp) AddRole(ctx context.Context, userID uint64, role string) (err error) {
+	return app.repo.AddRole(ctx, userID, role)
 }

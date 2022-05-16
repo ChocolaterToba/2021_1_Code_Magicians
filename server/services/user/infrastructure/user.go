@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/lib/pq"
 )
 
 type UserRepoInterface interface {
@@ -14,6 +15,8 @@ type UserRepoInterface interface {
 	GetUserByUsername(ctx context.Context, username string) (user domain.User, err error)
 	GetUsers(ctx context.Context) (users []domain.User, err error)
 	UpdateUser(ctx context.Context, user domain.User) (err error)
+	GetRoles(ctx context.Context, userID uint64) (roles []string, err error)
+	AddRole(ctx context.Context, userID uint64, role string) (err error)
 }
 
 type UserRepo struct {
@@ -164,4 +167,59 @@ func (repo *UserRepo) GetUsers(ctx context.Context) (users []domain.User, err er
 		return nil, domain.TransactionCommitError
 	}
 	return users, nil
+}
+
+func (repo *UserRepo) GetRoles(ctx context.Context, userID uint64) (roles []string, err error) {
+	tx, err := repo.postgresDB.Begin(ctx)
+	if err != nil {
+		return nil, domain.TransactionBeginError
+	}
+	defer tx.Rollback(ctx)
+
+	getRolesQuery := `SELECT roles
+					  FROM users
+					  WHERE id = $1`
+
+	row := tx.QueryRow(ctx, getRolesQuery, userID)
+	err = row.Scan(pq.Array(&roles))
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, domain.UserNotFoundError
+		}
+
+		return nil, err
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return nil, domain.TransactionCommitError
+	}
+	return roles, nil
+}
+
+func (repo *UserRepo) AddRole(ctx context.Context, userID uint64, role string) (err error) {
+	tx, err := repo.postgresDB.Begin(ctx)
+	if err != nil {
+		return domain.TransactionBeginError
+	}
+	defer tx.Rollback(ctx)
+
+	updateRolesQuery := `UPDATE users
+						 SET roles = array_append(roles, $2)
+						 WHERE id = $1`
+
+	result, err := tx.Exec(ctx, updateRolesQuery, userID, role)
+	if err != nil {
+		return err
+	}
+
+	if result.RowsAffected() != 1 {
+		return domain.UserNotFoundError
+	}
+
+	err = tx.Commit(ctx)
+	if err != nil {
+		return domain.TransactionCommitError
+	}
+	return nil
 }

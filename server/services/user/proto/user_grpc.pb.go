@@ -25,6 +25,8 @@ type UserClient interface {
 	GetUserByID(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*UserOutput, error)
 	GetUserByUsername(ctx context.Context, in *Username, opts ...grpc.CallOption) (*UserOutput, error)
 	GetUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UsersListOutput, error)
+	GetRoles(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*GetRolesResponse, error)
+	AddRole(ctx context.Context, in *AddRoleRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type userClient struct {
@@ -114,6 +116,24 @@ func (c *userClient) GetUsers(ctx context.Context, in *Empty, opts ...grpc.CallO
 	return out, nil
 }
 
+func (c *userClient) GetRoles(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*GetRolesResponse, error) {
+	out := new(GetRolesResponse)
+	err := c.cc.Invoke(ctx, "/user.User/GetRoles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userClient) AddRole(ctx context.Context, in *AddRoleRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/user.User/AddRole", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServer is the server API for User service.
 // All implementations must embed UnimplementedUserServer
 // for forward compatibility
@@ -125,6 +145,8 @@ type UserServer interface {
 	GetUserByID(context.Context, *UserID) (*UserOutput, error)
 	GetUserByUsername(context.Context, *Username) (*UserOutput, error)
 	GetUsers(context.Context, *Empty) (*UsersListOutput, error)
+	GetRoles(context.Context, *UserID) (*GetRolesResponse, error)
+	AddRole(context.Context, *AddRoleRequest) (*Empty, error)
 	mustEmbedUnimplementedUserServer()
 }
 
@@ -149,6 +171,12 @@ func (UnimplementedUserServer) GetUserByUsername(context.Context, *Username) (*U
 }
 func (UnimplementedUserServer) GetUsers(context.Context, *Empty) (*UsersListOutput, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
+}
+func (UnimplementedUserServer) GetRoles(context.Context, *UserID) (*GetRolesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoles not implemented")
+}
+func (UnimplementedUserServer) AddRole(context.Context, *AddRoleRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddRole not implemented")
 }
 func (UnimplementedUserServer) mustEmbedUnimplementedUserServer() {}
 
@@ -279,6 +307,42 @@ func _User_GetUsers_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _User_GetRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).GetRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/user.User/GetRoles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).GetRoles(ctx, req.(*UserID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _User_AddRole_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddRoleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServer).AddRole(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/user.User/AddRole",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServer).AddRole(ctx, req.(*AddRoleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // User_ServiceDesc is the grpc.ServiceDesc for User service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -305,6 +369,14 @@ var User_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsers",
 			Handler:    _User_GetUsers_Handler,
+		},
+		{
+			MethodName: "GetRoles",
+			Handler:    _User_GetRoles_Handler,
+		},
+		{
+			MethodName: "AddRole",
+			Handler:    _User_AddRole_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

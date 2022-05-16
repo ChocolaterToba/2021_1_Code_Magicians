@@ -44,3 +44,16 @@ func UsersToPbUserListOutput(users []User) *pb.UsersListOutput {
 		Users: result,
 	}
 }
+
+func ToPbRole(role string) pb.Role {
+	return pb.Role(pb.Role_value[role])
+}
+
+func ToPbRoles(roles []string) []pb.Role {
+	result := make([]pb.Role, 0, len(roles))
+	for _, role := range roles {
+		result = append(result, ToPbRole(role))
+	}
+
+	return result
+}

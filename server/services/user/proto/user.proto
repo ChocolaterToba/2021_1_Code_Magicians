@@ -63,6 +63,22 @@ message UpdateAvatarRequest {
   }
 }
 
+enum Role {
+  Undefined = 0;
+  Client = 1;
+  Manager = 2;
+  Admin = 3;
+}
+
+message AddRoleRequest {
+  uint64 user_id = 1;
+  Role role = 2;
+}
+
+message GetRolesResponse {
+  repeated Role roles = 1;
+}
+
 message Empty {}
 
 service User {
@@ -73,4 +89,6 @@ service User {
   rpc   GetUserByID(UserID) returns (UserOutput) {}
   rpc   GetUserByUsername(Username) returns (UserOutput) {}
   rpc   GetUsers(Empty) returns (UsersListOutput) {}
+  rpc   GetRoles(UserID) returns (GetRolesResponse) {}
+  rpc   AddRole(AddRoleRequest) returns (Empty) {}
   }
