@@ -120,5 +120,15 @@ func (app *UserApp) GetRoles(ctx context.Context, userID uint64) (roles []string
 }
 
 func (app *UserApp) AddRole(ctx context.Context, userID uint64, role string) (err error) {
-	return app.repo.AddRole(ctx, userID, role)
+	roles, err := app.repo.GetRoles(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	for _, dbRole := range roles {
+		if dbRole == role {
+			return nil // skip role assignment
+		}
+	}
+	return app.repo.UpdateRoles(ctx, userID, append(roles, role))
 }

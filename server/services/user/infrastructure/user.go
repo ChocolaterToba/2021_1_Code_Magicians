@@ -16,7 +16,7 @@ type UserRepoInterface interface {
 	GetUsers(ctx context.Context) (users []domain.User, err error)
 	UpdateUser(ctx context.Context, user domain.User) (err error)
 	GetRoles(ctx context.Context, userID uint64) (roles []string, err error)
-	AddRole(ctx context.Context, userID uint64, role string) (err error)
+	UpdateRoles(ctx context.Context, userID uint64, roles []string) (err error)
 }
 
 type UserRepo struct {
@@ -197,7 +197,7 @@ func (repo *UserRepo) GetRoles(ctx context.Context, userID uint64) (roles []stri
 	return roles, nil
 }
 
-func (repo *UserRepo) AddRole(ctx context.Context, userID uint64, role string) (err error) {
+func (repo *UserRepo) UpdateRoles(ctx context.Context, userID uint64, roles []string) (err error) {
 	tx, err := repo.postgresDB.Begin(ctx)
 	if err != nil {
 		return domain.TransactionBeginError
@@ -205,10 +205,10 @@ func (repo *UserRepo) AddRole(ctx context.Context, userID uint64, role string) (
 	defer tx.Rollback(ctx)
 
 	updateRolesQuery := `UPDATE users
-						 SET roles = array_append(roles, $2)
+						 SET roles = $2
 						 WHERE id = $1`
 
-	result, err := tx.Exec(ctx, updateRolesQuery, userID, role)
+	result, err := tx.Exec(ctx, updateRolesQuery, userID, pq.Array(roles))
 	if err != nil {
 		return err
 	}
