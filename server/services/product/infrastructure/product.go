@@ -45,13 +45,13 @@ func (repo *ProductRepo) UpdateProduct(ctx context.Context, product domain.Produ
 	defer tx.Rollback(ctx)
 
 	updateProductQuery := `UPDATE products
-						   SET title = $2, description = $3, price = $4, availability =$5, 
-						   assembly_time = $6, parts_amount = $7, size = $8, category = $9, image_links = $10, shop_id = $11
+						   SET title = $2, description = $3, price = $4, availability =$5, assembly_time = $6, parts_amount = $7,
+						   size = $8, category = $9, image_links = $10, video_link = $11, shop_id = $12
 						   WHERE id = $1`
 
 	result, err := tx.Exec(ctx, updateProductQuery,
 		product.Id, product.Title, product.Description, product.Price, product.Availability, product.AssemblyTime,
-		product.PartsAmount, product.Size, product.Category, product.ImageLinks, product.ShopId)
+		product.PartsAmount, product.Size, product.Category, product.ImageLinks, product.VideoLink, product.ShopId)
 	if err != nil {
 		return err
 	}

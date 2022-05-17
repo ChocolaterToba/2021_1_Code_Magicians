@@ -228,7 +228,7 @@ func (facade *ProductFacade) GetProductsFeed(w http.ResponseWriter, r *http.Requ
 	return
 }
 
-const maxPostAvatarBodySize = 70 * 1024 * 1024 // 70 mB
+const maxPostAvatarsBodySize = 70 * 1024 * 1024 // 70 mB
 // HandlePostAvatar takes avatar from request and assigns it to current user
 func (facade *ProductFacade) PostAvatars(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -253,7 +253,7 @@ func (facade *ProductFacade) PostAvatars(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	if bodySize > int64(maxPostAvatarBodySize) { // Avatar is too large
+	if bodySize > int64(maxPostAvatarsBodySize) { // Avatar is too large
 		facade.logger.Info(domain.ErrFileTooLarge.Error(),
 			zap.String("url", r.RequestURI),
 			zap.String("method", r.Method))
@@ -293,6 +293,65 @@ func (facade *ProductFacade) PostAvatars(w http.ResponseWriter, r *http.Request)
 	}
 
 	err = facade.productClient.UpdateProductAvatars(context.Background(), productID, filesWithNames)
+	if err != nil {
+		// TODO: parse wrong extension errors
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return
+}
+
+const maxPostVideoBodySize = 70 * 1024 * 1024 // 70 mB
+// HandlePostAvatar takes avatar from request and assigns it to current user
+func (facade *ProductFacade) PostVideo(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	productIDStr, passedID := vars[string(domain.IDKey)]
+
+	if !passedID {
+		facade.logger.Info("Could not get id from query params",
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	productID, _ := strconv.ParseUint(productIDStr, 10, 64)
+
+	bodySize := r.ContentLength
+
+	if bodySize <= 0 { // No avatar was passed
+		facade.logger.Info(domain.ErrNoFile.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if bodySize > int64(maxPostVideoBodySize) { // Avatar is too large
+		facade.logger.Info(domain.ErrFileTooLarge.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	r.ParseMultipartForm(bodySize)
+	file, header, err := r.FormFile("avatarVideo")
+	if err != nil {
+		facade.logger.Info(err.Error(),
+			zap.String("url", r.RequestURI),
+			zap.String("method", r.Method))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	defer file.Close()
+
+	err = facade.productClient.UpdateProductVideo(context.Background(), productID, header.Filename, file)
 	if err != nil {
 		// TODO: parse wrong extension errors
 		facade.logger.Info(err.Error(),

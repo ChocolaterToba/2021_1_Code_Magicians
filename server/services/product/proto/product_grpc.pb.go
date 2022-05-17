@@ -24,6 +24,7 @@ type ProductServiceClient interface {
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error)
 	EditProduct(ctx context.Context, in *EditProductRequest, opts ...grpc.CallOption) (*Empty, error)
 	UpdateProductAvatars(ctx context.Context, opts ...grpc.CallOption) (ProductService_UpdateProductAvatarsClient, error)
+	UpdateProductVideo(ctx context.Context, opts ...grpc.CallOption) (ProductService_UpdateProductVideoClient, error)
 	GetProductByID(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error)
 	GetProductsByIDs(ctx context.Context, in *GetProductsByIDsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error)
 	GetProducts(ctx context.Context, in *GetProductsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error)
@@ -112,6 +113,40 @@ func (x *productServiceUpdateProductAvatarsClient) Send(m *UpdateProductAvatarsR
 }
 
 func (x *productServiceUpdateProductAvatarsClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *productServiceClient) UpdateProductVideo(ctx context.Context, opts ...grpc.CallOption) (ProductService_UpdateProductVideoClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProductService_ServiceDesc.Streams[1], "/product.ProductService/updateProductVideo", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &productServiceUpdateProductVideoClient{stream}
+	return x, nil
+}
+
+type ProductService_UpdateProductVideoClient interface {
+	Send(*UpdateProductVideoRequest) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type productServiceUpdateProductVideoClient struct {
+	grpc.ClientStream
+}
+
+func (x *productServiceUpdateProductVideoClient) Send(m *UpdateProductVideoRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *productServiceUpdateProductVideoClient) CloseAndRecv() (*Empty, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
@@ -213,6 +248,7 @@ type ProductServiceServer interface {
 	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error)
 	EditProduct(context.Context, *EditProductRequest) (*Empty, error)
 	UpdateProductAvatars(ProductService_UpdateProductAvatarsServer) error
+	UpdateProductVideo(ProductService_UpdateProductVideoServer) error
 	GetProductByID(context.Context, *GetProductRequest) (*Product, error)
 	GetProductsByIDs(context.Context, *GetProductsByIDsRequest) (*GetProductsResponse, error)
 	GetProducts(context.Context, *GetProductsRequest) (*GetProductsResponse, error)
@@ -246,6 +282,9 @@ func (UnimplementedProductServiceServer) EditProduct(context.Context, *EditProdu
 }
 func (UnimplementedProductServiceServer) UpdateProductAvatars(ProductService_UpdateProductAvatarsServer) error {
 	return status.Errorf(codes.Unimplemented, "method UpdateProductAvatars not implemented")
+}
+func (UnimplementedProductServiceServer) UpdateProductVideo(ProductService_UpdateProductVideoServer) error {
+	return status.Errorf(codes.Unimplemented, "method UpdateProductVideo not implemented")
 }
 func (UnimplementedProductServiceServer) GetProductByID(context.Context, *GetProductRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductByID not implemented")
@@ -397,6 +436,32 @@ func (x *productServiceUpdateProductAvatarsServer) SendAndClose(m *Empty) error 
 
 func (x *productServiceUpdateProductAvatarsServer) Recv() (*UpdateProductAvatarsRequest, error) {
 	m := new(UpdateProductAvatarsRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func _ProductService_UpdateProductVideo_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProductServiceServer).UpdateProductVideo(&productServiceUpdateProductVideoServer{stream})
+}
+
+type ProductService_UpdateProductVideoServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*UpdateProductVideoRequest, error)
+	grpc.ServerStream
+}
+
+type productServiceUpdateProductVideoServer struct {
+	grpc.ServerStream
+}
+
+func (x *productServiceUpdateProductVideoServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *productServiceUpdateProductVideoServer) Recv() (*UpdateProductVideoRequest, error) {
+	m := new(UpdateProductVideoRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -633,6 +698,11 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "UpdateProductAvatars",
 			Handler:       _ProductService_UpdateProductAvatars_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "updateProductVideo",
+			Handler:       _ProductService_UpdateProductVideo_Handler,
 			ClientStreams: true,
 		},
 	},

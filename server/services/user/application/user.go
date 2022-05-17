@@ -112,6 +112,10 @@ func (app *UserApp) UpdateAvatar(ctx context.Context, userID uint64, filename st
 		return err
 	}
 
+	if oldAvatarPath == "" {
+		return nil
+	}
+
 	return app.s3Client.DeleteFile(ctx, oldAvatarPath)
 }
 

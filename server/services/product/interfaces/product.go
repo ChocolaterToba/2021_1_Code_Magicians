@@ -179,6 +179,57 @@ OuterLoop:
 	return stream.SendAndClose(&pb.Empty{})
 }
 
+const maxPostVideoBodySize = 70 * 1024 * 1024 // 8 mB
+
+func (facade *ProductFacade) UpdateProductVideo(stream pb.ProductService_UpdateProductVideoServer) error {
+	req, err := stream.Recv()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "cannot receive product id")
+	}
+
+	productID := req.GetProductId()
+
+	req, err = stream.Recv()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "cannot receive filename")
+	}
+
+	filename := req.GetFilename()
+
+	// filenamePrefix := uniuri.NewLen(10) // generating random filename
+	// newAvatarPath := "avatars/" + filenamePrefix + req.GetExtension() // TODO: avatars folder sharding by date
+
+	imageData := bytes.Buffer{}
+	imageSize := 0
+	for {
+		req, err = stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err)
+		}
+		chunk := req.GetChunk()
+		size := len(chunk)
+
+		imageSize += size
+		if imageSize > maxPostVideoBodySize {
+			return status.Errorf(codes.InvalidArgument, "image is too large: %d > %d", imageSize, maxPostVideoBodySize)
+		}
+		_, err = imageData.Write(chunk)
+		if err != nil {
+			return status.Errorf(codes.Internal, "cannot write chunk data: %v", err)
+		}
+	}
+
+	err = facade.app.UpdateProductVideo(context.Background(), productID, filename, &imageData)
+	if err != nil {
+		return err
+	}
+
+	return stream.SendAndClose(&pb.Empty{})
+}
+
 func (facade *ProductFacade) GetProductByID(ctx context.Context, in *pb.GetProductRequest) (*pb.Product, error) {
 	product, err := facade.app.GetProductByID(ctx, in.GetId())
 	if err != nil {

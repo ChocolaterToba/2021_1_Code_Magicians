@@ -1,6 +1,7 @@
 package application
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"path/filepath"
@@ -21,6 +22,7 @@ type ProductAppInterface interface {
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	EditProduct(ctx context.Context, product domain.Product) (err error)
 	UpdateProductAvatars(ctx context.Context, productID uint64, avatars []domain.FileWithName) (err error)
+	UpdateProductVideo(ctx context.Context, productID uint64, filename string, file *bytes.Buffer) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
 	GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error)
 	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error)
@@ -131,6 +133,10 @@ func (app *ProductApp) UpdateProductAvatars(ctx context.Context, productID uint6
 	}
 
 	for _, filename := range oldFilenames {
+		if filename == "" {
+			continue
+		}
+
 		err = app.s3Client.DeleteFile(ctx, filename)
 		if err != nil {
 			return errors.Wrap(err, "Error when deleting old avatars")
@@ -138,6 +144,44 @@ func (app *ProductApp) UpdateProductAvatars(ctx context.Context, productID uint6
 	}
 
 	return nil
+}
+
+func (app *ProductApp) UpdateProductVideo(ctx context.Context, productID uint64, filename string, file *bytes.Buffer) (err error) {
+	product, err := app.repo.GetProductByID(ctx, productID)
+	if err != nil {
+		return err
+	}
+
+	extension := filepath.Ext(filename)
+	if extension != ".mp4" {
+		return errors.Wrap(domain.UnsupportedExtensionError, fmt.Sprintf("Extension: %s", extension))
+	}
+
+	filePrefix := time.Now().Format("2006/01/02") // is used for easy manual file search
+
+	fileID := uniuri.NewLen(AvatarIDLen)
+
+	newVideoLink := filePrefix + "/" + fileID + "_" + filename
+
+	err = app.s3Client.UploadFile(ctx, newVideoLink, file)
+	if err != nil {
+		return err
+	}
+
+	oldVideoLink := product.VideoLink
+	product.VideoLink = newVideoLink
+
+	err = app.repo.UpdateProduct(ctx, product)
+	if err != nil {
+		app.s3Client.DeleteFile(ctx, oldVideoLink) // Try to delete freshly uploaded file
+		return err
+	}
+
+	if oldVideoLink == "" {
+		return nil
+	}
+
+	return app.s3Client.DeleteFile(ctx, oldVideoLink)
 }
 
 func (app *ProductApp) GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error) {
