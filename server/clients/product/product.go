@@ -1,11 +1,14 @@
 package product
 
 import (
+	"bufio"
 	"context"
+	"io"
 	"pinterest/domain"
 	productdomain "pinterest/services/product/domain"
 	productproto "pinterest/services/product/proto"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -16,6 +19,7 @@ type ProductClientInterface interface {
 	GetShopByID(ctx context.Context, id uint64) (shop domain.Shop, err error)
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	EditProduct(ctx context.Context, product domain.Product) (err error)
+	UpdateProductAvatars(ctx context.Context, productID uint64, avatars []domain.FileWithName) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
 	GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error)
 	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error)
@@ -88,6 +92,69 @@ func (client *ProductClient) EditProduct(ctx context.Context, product domain.Pro
 			return domain.ErrProductNotFound
 		}
 		return errors.Wrap(err, "product client error")
+	}
+
+	return nil
+}
+
+func (client *ProductClient) UpdateProductAvatars(ctx context.Context, productID uint64, avatars []domain.FileWithName) (err error) {
+	ctx, cancel := context.WithDeadline(ctx, time.Now().Add(10*time.Second))
+	defer cancel()
+
+	stream, err := client.productClient.UpdateProductAvatars(ctx)
+	if err != nil {
+		return errors.Wrap(err, "Cannot start stream")
+	}
+
+	productIDReq := &productproto.UpdateProductAvatarsRequest{
+		Data: &productproto.UpdateProductAvatarsRequest_ProductId{
+			ProductId: productID,
+		},
+	}
+	err = stream.Send(productIDReq)
+	if err != nil {
+		return errors.Wrap(err, "Cannot send product id to service")
+	}
+
+	for _, avatar := range avatars {
+		filenameReq := &productproto.UpdateProductAvatarsRequest{
+			Data: &productproto.UpdateProductAvatarsRequest_Filename{
+				Filename: avatar.Filename,
+			},
+		}
+		err = stream.Send(filenameReq)
+		if err != nil {
+			return errors.Wrap(err, "Cannot send image's filename to service")
+		}
+
+		reader := bufio.NewReader(avatar.File)
+		buffer := make([]byte, 3.5*1024*1024) // jrpc by default cannot receive packages larger than 4 MB
+
+		for {
+			n, err := reader.Read(buffer)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return errors.Wrap(err, "Cannot read chunk to buffer")
+			}
+
+			req := &productproto.UpdateProductAvatarsRequest{
+				Data: &productproto.UpdateProductAvatarsRequest_Chunk{
+					Chunk: buffer[:n],
+				},
+			}
+			err = stream.Send(req)
+			if err != nil {
+				return errors.Wrap(err, "Cannot send chunk to server")
+			}
+		}
+	}
+
+	_, err = stream.CloseAndRecv()
+	if err != nil {
+		// TODO: parse this error
+		return errors.Wrap(err, "Cannot receive response")
 	}
 
 	return nil

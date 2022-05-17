@@ -82,6 +82,14 @@ message EditProductRequest {
   uint64 shop_id = 10;
 }
 
+message UpdateProductAvatarsRequest {
+  oneof data {
+    uint64 product_id = 1;
+    string filename = 2;
+    bytes chunk = 3;
+  }
+}
+
 message GetProductRequest {
   uint64 id = 1;
 }
@@ -164,6 +172,7 @@ service ProductService {
   rpc   GetShopByID(GetShopRequest) returns (Shop) {}
   rpc   CreateProduct(CreateProductRequest) returns (CreateProductResponse) {}
   rpc   EditProduct(EditProductRequest) returns (Empty) {}
+  rpc   UpdateProductAvatars(stream UpdateProductAvatarsRequest) returns (Empty) {}
   rpc   GetProductByID(GetProductRequest) returns (Product) {}
   rpc   GetProductsByIDs(GetProductsByIDsRequest) returns (GetProductsResponse) {}
   rpc   GetProducts(GetProductsRequest) returns (GetProductsResponse) {}

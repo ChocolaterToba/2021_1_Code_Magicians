@@ -3,10 +3,14 @@ package application
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+	s3client "pinterest/services/product/clients/s3"
 	"pinterest/services/product/domain"
 	repository "pinterest/services/product/infrastructure"
 	"strings"
+	"time"
 
+	"github.com/dchest/uniuri"
 	"github.com/pkg/errors"
 )
 
@@ -16,6 +20,7 @@ type ProductAppInterface interface {
 	GetShopByID(ctx context.Context, id uint64) (shop domain.Shop, err error)
 	CreateProduct(ctx context.Context, product domain.Product) (id uint64, err error)
 	EditProduct(ctx context.Context, product domain.Product) (err error)
+	UpdateProductAvatars(ctx context.Context, productID uint64, avatars []domain.FileWithName) (err error)
 	GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error)
 	GetProductsByIDs(ctx context.Context, ids []uint64) (products []domain.Product, err error)
 	GetProducts(ctx context.Context, pageOffset uint64, pageSize uint64, category string) (products []domain.Product, err error)
@@ -28,12 +33,14 @@ type ProductAppInterface interface {
 }
 
 type ProductApp struct {
-	repo repository.ProductRepoInterface
+	repo     repository.ProductRepoInterface
+	s3Client s3client.S3ClientInterface
 }
 
-func NewProductApp(repo repository.ProductRepoInterface) *ProductApp {
+func NewProductApp(repo repository.ProductRepoInterface, s3Client s3client.S3ClientInterface) *ProductApp {
 	return &ProductApp{
-		repo: repo,
+		repo:     repo,
+		s3Client: s3Client,
 	}
 }
 
@@ -83,6 +90,54 @@ func (app *ProductApp) EditProduct(ctx context.Context, product domain.Product) 
 	dbProduct.ShopId = replaceUint64IfNotEmpty(dbProduct.ShopId, product.ShopId)
 
 	return app.repo.UpdateProduct(ctx, dbProduct)
+}
+
+const AvatarIDLen = 10
+
+func (app *ProductApp) UpdateProductAvatars(ctx context.Context, productID uint64, avatars []domain.FileWithName) (err error) {
+	product, err := app.repo.GetProductByID(ctx, productID)
+	if err != nil {
+		return err
+	}
+
+	oldFilenames := product.ImageLinks
+	product.ImageLinks = nil
+	for _, avatar := range avatars {
+		extension := filepath.Ext(avatar.Filename)
+		if extension != ".jpeg" && extension != ".jpg" && extension != ".png" && extension != ".mp4" {
+			return errors.Wrap(domain.UnsupportedExtensionError, fmt.Sprintf("Extension: %s", extension))
+		}
+
+		filePrefix := time.Now().Format("2006/01/02") // is used for easy manual file search
+
+		fileID := uniuri.NewLen(AvatarIDLen)
+
+		newAvatarPath := filePrefix + "/" + fileID + "_" + avatar.Filename
+		product.ImageLinks = append(product.ImageLinks, newAvatarPath)
+
+		err = app.s3Client.UploadFile(ctx, newAvatarPath, avatar.File)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = app.repo.UpdateProduct(ctx, product)
+	if err != nil {
+		for _, filename := range product.ImageLinks {
+			app.s3Client.DeleteFile(ctx, filename) // Try to delete freshly uploaded files
+		}
+
+		return err
+	}
+
+	for _, filename := range oldFilenames {
+		err = app.s3Client.DeleteFile(ctx, filename)
+		if err != nil {
+			return errors.Wrap(err, "Error when deleting old avatars")
+		}
+	}
+
+	return nil
 }
 
 func (app *ProductApp) GetProductByID(ctx context.Context, id uint64) (product domain.Product, err error) {

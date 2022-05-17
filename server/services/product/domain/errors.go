@@ -12,4 +12,5 @@ var (
 	CartEmptyError             = errors.New("Cart is empty")
 	OrderNotFoundError         = errors.New("Could not find order")
 	ForeignOrderError          = errors.New("This order belongs to another user")
+	UnsupportedExtensionError  = errors.New("File extension not supported")
 )

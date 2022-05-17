@@ -23,6 +23,7 @@ type ProductServiceClient interface {
 	GetShopByID(ctx context.Context, in *GetShopRequest, opts ...grpc.CallOption) (*Shop, error)
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error)
 	EditProduct(ctx context.Context, in *EditProductRequest, opts ...grpc.CallOption) (*Empty, error)
+	UpdateProductAvatars(ctx context.Context, opts ...grpc.CallOption) (ProductService_UpdateProductAvatarsClient, error)
 	GetProductByID(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error)
 	GetProductsByIDs(ctx context.Context, in *GetProductsByIDsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error)
 	GetProducts(ctx context.Context, in *GetProductsRequest, opts ...grpc.CallOption) (*GetProductsResponse, error)
@@ -85,6 +86,40 @@ func (c *productServiceClient) EditProduct(ctx context.Context, in *EditProductR
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *productServiceClient) UpdateProductAvatars(ctx context.Context, opts ...grpc.CallOption) (ProductService_UpdateProductAvatarsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &ProductService_ServiceDesc.Streams[0], "/product.ProductService/UpdateProductAvatars", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &productServiceUpdateProductAvatarsClient{stream}
+	return x, nil
+}
+
+type ProductService_UpdateProductAvatarsClient interface {
+	Send(*UpdateProductAvatarsRequest) error
+	CloseAndRecv() (*Empty, error)
+	grpc.ClientStream
+}
+
+type productServiceUpdateProductAvatarsClient struct {
+	grpc.ClientStream
+}
+
+func (x *productServiceUpdateProductAvatarsClient) Send(m *UpdateProductAvatarsRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *productServiceUpdateProductAvatarsClient) CloseAndRecv() (*Empty, error) {
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	m := new(Empty)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *productServiceClient) GetProductByID(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*Product, error) {
@@ -177,6 +212,7 @@ type ProductServiceServer interface {
 	GetShopByID(context.Context, *GetShopRequest) (*Shop, error)
 	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error)
 	EditProduct(context.Context, *EditProductRequest) (*Empty, error)
+	UpdateProductAvatars(ProductService_UpdateProductAvatarsServer) error
 	GetProductByID(context.Context, *GetProductRequest) (*Product, error)
 	GetProductsByIDs(context.Context, *GetProductsByIDsRequest) (*GetProductsResponse, error)
 	GetProducts(context.Context, *GetProductsRequest) (*GetProductsResponse, error)
@@ -207,6 +243,9 @@ func (UnimplementedProductServiceServer) CreateProduct(context.Context, *CreateP
 }
 func (UnimplementedProductServiceServer) EditProduct(context.Context, *EditProductRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditProduct not implemented")
+}
+func (UnimplementedProductServiceServer) UpdateProductAvatars(ProductService_UpdateProductAvatarsServer) error {
+	return status.Errorf(codes.Unimplemented, "method UpdateProductAvatars not implemented")
 }
 func (UnimplementedProductServiceServer) GetProductByID(context.Context, *GetProductRequest) (*Product, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProductByID not implemented")
@@ -336,6 +375,32 @@ func _ProductService_EditProduct_Handler(srv interface{}, ctx context.Context, d
 		return srv.(ProductServiceServer).EditProduct(ctx, req.(*EditProductRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _ProductService_UpdateProductAvatars_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProductServiceServer).UpdateProductAvatars(&productServiceUpdateProductAvatarsServer{stream})
+}
+
+type ProductService_UpdateProductAvatarsServer interface {
+	SendAndClose(*Empty) error
+	Recv() (*UpdateProductAvatarsRequest, error)
+	grpc.ServerStream
+}
+
+type productServiceUpdateProductAvatarsServer struct {
+	grpc.ServerStream
+}
+
+func (x *productServiceUpdateProductAvatarsServer) SendAndClose(m *Empty) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *productServiceUpdateProductAvatarsServer) Recv() (*UpdateProductAvatarsRequest, error) {
+	m := new(UpdateProductAvatarsRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func _ProductService_GetProductByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -564,6 +629,12 @@ var ProductService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProductService_GetOrders_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "UpdateProductAvatars",
+			Handler:       _ProductService_UpdateProductAvatars_Handler,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "product.proto",
 }

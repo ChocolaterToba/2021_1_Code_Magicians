@@ -1,14 +1,19 @@
 package facade
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"pinterest/services/product/application"
 	"pinterest/services/product/domain"
+
 	pb "pinterest/services/product/proto"
 	"time"
 
 	"github.com/pkg/errors"
 	_ "google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type ProductFacade struct {
@@ -105,6 +110,75 @@ func (facade *ProductFacade) EditProduct(ctx context.Context, in *pb.EditProduct
 
 	return &pb.Empty{}, nil
 }
+
+const maxPostAvatarsBodySize = 70 * 1024 * 1024 // 70 mB
+
+func (facade *ProductFacade) UpdateProductAvatars(stream pb.ProductService_UpdateProductAvatarsServer) error {
+	req, err := stream.Recv()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "cannot receive product id")
+	}
+
+	productID := req.GetProductId()
+
+	filesWithNames := make([]domain.FileWithName, 0)
+
+	fileWithName := domain.FileWithName{}
+
+	req, err = stream.Recv()
+	if err != nil {
+		return status.Errorf(codes.Unknown, "cannot receive filename")
+	}
+
+	fileWithName.Filename = req.GetFilename()
+
+OuterLoop:
+	for {
+		imageData := bytes.Buffer{}
+		imageSize := 0
+
+	InnerLoop:
+		for {
+			req, err = stream.Recv()
+			if err == io.EOF { // last file has been read
+				fileWithName.File = &imageData
+				filesWithNames = append(filesWithNames, fileWithName)
+				fileWithName = domain.FileWithName{Filename: req.GetFilename()}
+				break OuterLoop
+			}
+			if err != nil {
+				return status.Errorf(codes.Unknown, "cannot receive chunk data: %v", err)
+			}
+
+			if req.GetFilename() != "" { // file is over, next one starts
+				fileWithName.File = &imageData
+				filesWithNames = append(filesWithNames, fileWithName)
+				fileWithName = domain.FileWithName{Filename: req.GetFilename()}
+				break InnerLoop
+			}
+
+			chunk := req.GetChunk()
+			size := len(chunk)
+
+			imageSize += size
+			if imageSize > maxPostAvatarsBodySize {
+				return status.Errorf(codes.InvalidArgument, "image is too large: %d > %d", imageSize, maxPostAvatarsBodySize)
+			}
+			_, err = imageData.Write(chunk)
+			if err != nil {
+				return status.Errorf(codes.Internal, "cannot write chunk data: %v", err)
+			}
+		}
+	}
+
+	err = facade.app.UpdateProductAvatars(context.Background(), productID, filesWithNames)
+	if err != nil {
+		return err
+	}
+
+	return stream.SendAndClose(&pb.Empty{})
+}
+
 func (facade *ProductFacade) GetProductByID(ctx context.Context, in *pb.GetProductRequest) (*pb.Product, error) {
 	product, err := facade.app.GetProductByID(ctx, in.GetId())
 	if err != nil {

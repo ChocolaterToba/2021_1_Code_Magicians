@@ -108,7 +108,7 @@ func (app *UserApp) UpdateAvatar(ctx context.Context, userID uint64, filename st
 
 	err = app.repo.UpdateUser(ctx, user)
 	if err != nil {
-		app.s3Client.DeleteFile(ctx, oldAvatarPath) // Try to delete freshly uploaded file
+		app.s3Client.DeleteFile(ctx, newAvatarPath) // Try to delete freshly uploaded file
 		return err
 	}
 

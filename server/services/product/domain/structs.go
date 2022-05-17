@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 type Shop struct {
 	Id          uint64
@@ -37,4 +40,9 @@ type Order struct {
 	PaymentMethod   string
 	CallNeeded      bool
 	Status          string
+}
+
+type FileWithName struct {
+	File     io.Reader
+	Filename string
 }

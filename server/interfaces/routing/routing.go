@@ -59,6 +59,7 @@ func CreateRouter(authClient authclient.AuthClientInterface,
 	r.HandleFunc("/api/product", mid.AuthMid(productFacade.CreateProduct, authClient)).Methods("POST")
 	r.HandleFunc("/api/product/{id:[0-9]+}", mid.AuthMid(productFacade.EditProduct, authClient)).Methods("PUT")
 	r.HandleFunc("/api/product/{id:[0-9]+}", productFacade.GetProductByID).Methods("GET")
+	r.HandleFunc("/api/product/{id:[0-9]+}/avatar", mid.AuthMid(productFacade.PostAvatars, authClient)).Methods("PUT")
 
 	r.HandleFunc("/api/products", productFacade.GetProducts).Methods("POST")
 	r.HandleFunc("/api/products/feed", productFacade.GetProductsFeed).Methods("GET")
