@@ -266,7 +266,6 @@ func (facade *ProfileFacade) HandlePostAvatar(w http.ResponseWriter, r *http.Req
 		facade.logger.Info(err.Error(),
 			zap.String("url", r.RequestURI),
 			zap.String("method", r.Method))
-		w.WriteHeader(http.StatusBadRequest)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
